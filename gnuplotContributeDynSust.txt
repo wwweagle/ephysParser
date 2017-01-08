@@ -1,0 +1,56 @@
+set terminal postscript eps font "Helvetica, 20" size 5cm, 3.6cm
+set output "R:/ZX/APC/RecordingAug16/contributeSustain.eps"
+# set terminal windows 0 font "Helvetica, 10" size 250,600
+set boxwidth 0.9
+set xrange [0.5:2.5]
+set yrange [0.48:0.9]
+set ytics 0.5,0.2,0.9
+unset xtics
+set ytics nomirror
+set border 3
+# set key off
+set bars 1
+
+set style data histogram
+set style histogram errorbars gap 1.5
+
+# set yrange [0:1]
+# set ytics 0,0.5,1
+#set ylabel "Decoding accuracy" font "Helvetica, 24"
+
+
+plot "R:/ZX/APC/RecordingAug16/contribute_stats_None.txt" using 15:16:17 title "None" linetype -1,\
+	"R:/ZX/APC/RecordingAug16/contribute_stats_Nogo.txt" using 15:16:17 title "Nogo" linetype -1 fillstyle pattern 9,\
+	"R:/ZX/APC/RecordingAug16/contribute_stats_Go.txt" using 15:16:17 title "Go" linetype -1 fillstyle solid 1
+	
+	
+	
+	
+
+	
+#############################################################
+set terminal postscript eps font "Helvetica, 20" size 5cm, 3.6cm
+set output "R:/ZX/APC/RecordingAug16/contributeDyn.eps"
+# set terminal windows 0 font "Helvetica, 10" size 250,600
+set boxwidth 0.9
+set xrange [0.5:2.5]
+set yrange [0.48:0.9]
+set ytics 0.5,0.2,0.9
+unset xtics
+set ytics nomirror
+set border 3
+# set key off
+set bars 1
+
+set style data histogram
+set style histogram errorbars gap 1.5
+
+# set yrange [0:1]
+# set ytics 0,0.5,1
+#set ylabel "Decoding accuracy" font "Helvetica, 24"
+
+
+plot "R:/ZX/APC/RecordingAug16/contribute_stats_None.txt" using 18:19:20 title "None" linetype -1,\
+	"R:/ZX/APC/RecordingAug16/contribute_stats_Nogo.txt" using 18:19:20 title "Nogo" linetype -1 fillstyle pattern 9,\
+	"R:/ZX/APC/RecordingAug16/contribute_stats_Go.txt" using 18:19:20 title "Go" linetype -1 fillstyle solid 1
+		

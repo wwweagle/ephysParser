@@ -1,0 +1,27 @@
+set terminal postscript eps font "Helvetica, 20" size 9.5cm, 3.5cm
+set output "R:/ZX/APC/RecordingAug16/contributeDNMS.eps"
+# set terminal windows 0 font "Helvetica, 10" size 250,600
+set boxwidth 0.9
+set xrange [0.5:2.5]
+set yrange [0.48:1.05]
+set ytics 0.5,0.2,1.0
+unset xtics
+set ytics nomirror
+set border 3
+set key off
+set bars 2
+
+set style data histogram
+set style histogram errorbars gap 1.5
+
+# set yrange [0:1]
+# set ytics 0,0.5,1
+#set ylabel "Decoding accuracy" font "Helvetica, 24"
+
+
+plot "R:/ZX/APC/RecordingAug16/contribute_stats_DNMS8s.txt" using 3:4:5 title "Shuffle" linetype -1,\
+	"R:/ZX/APC/RecordingAug16/contribute_stats_DNMS8s.txt" using 6:7:8 title "Others 248/339" linetype -1 fillstyle pattern 9,\
+	"R:/ZX/APC/RecordingAug16/contribute_stats_DNMS8s.txt" using 9:10:11 title "Switched 10/339" linetype -1 fillstyle pattern 2,\
+	"R:/ZX/APC/RecordingAug16/contribute_stats_DNMS8s.txt" using 12:13:14 title "Transient 75/339" linetype -1 fillstyle pattern 6,\
+	"R:/ZX/APC/RecordingAug16/contribute_stats_DNMS8s.txt" using 15:16:17 title "Stable 6/339" linetype -1 fillstyle solid 1
+	

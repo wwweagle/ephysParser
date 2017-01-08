@@ -1,0 +1,50 @@
+set terminal postscript eps font "Helvetica, 20" size 4cm, 4.8cm
+set output "R:/ZX/APC/RecordingAug16/distPerf.eps"
+#set terminal windows 0 size 300,400
+set boxwidth 0.75
+set xrange [0:4]
+unset xtics
+set ytics nomirror
+set border 3
+set bars 1
+
+set yrange [60:90]
+set ytics 60,10,90
+set ylabel "Performance" font "Helvetica, 20"
+
+plot "R:/ZX/APC/RecordingAug16/perfData.txt" using 1:2 every ::0::0 title "No distractor" with boxes linetype -1,\
+    "R:/ZX/APC/RecordingAug16/perfData.txt" using 1:2 every ::1::1 title "Nogo distractor" with boxes linetype -1 fillstyle pattern 5,\
+    "R:/ZX/APC/RecordingAug16/perfData.txt" using 1:2 every ::2::2 title "Go distractor" with boxes linetype -1 fillstyle pattern 4,\
+    "R:/ZX/APC/RecordingAug16/perfData.txt" using 1:2:3 with yerrorbars linetype -1 linewidth 1.5 notitle
+
+
+
+set terminal postscript eps font "Helvetica, 20" size 4cm, 4.8cm
+set output "R:/ZX/APC/RecordingAug16/distFalse.eps"
+#set terminal windows 1 size 300,400
+
+
+set yrange [0:50]
+set ytics 0,10,50
+set ylabel "False Choice" font "Helvetica, 20"
+
+plot "R:/ZX/APC/RecordingAug16/falseData.txt" using 1:2 every ::0::0 title "No distractor" with boxes linetype -1,\
+    "R:/ZX/APC/RecordingAug16/falseData.txt" using 1:2 every ::1::1 title "Nogo distractor" with boxes linetype -1 fillstyle pattern 5,\
+    "R:/ZX/APC/RecordingAug16/falseData.txt" using 1:2 every ::2::2 title "Go distractor" with boxes linetype -1 fillstyle pattern 4,\
+    "R:/ZX/APC/RecordingAug16/falseData.txt" using 1:2:3 with yerrorbars linetype -1 linewidth 1.5 notitle
+
+
+#set terminal postscript eps font "Helvetica, 20" size 4.6cm, 5.3cm
+#set output "R:/ZX/APC/RecordingAug16/CDPBar.eps"
+#set terminal windows 1 size 300,400
+
+
+#set yrange [0:100]
+#set ytics 0,20,100
+#set ylabel "C.D. distance (a.u.)" font "Helvetica, 24"
+
+#plot "R:/ZX/APC/RecordingAug16/CDPBar.txt" using 1:2 every ::0::0 title "No distractor" with boxes linetype -1,\
+    "R:/ZX/APC/RecordingAug16/CDPBar.txt" using 1:2 every ::1::1 title "Nogo distractor" with boxes linetype -1 fillstyle pattern 4,\
+    "R:/ZX/APC/RecordingAug16/CDPBar.txt" using 1:2 every ::2::2 title "Go distractor" with boxes linetype -1 fillstyle solid 1,\
+    "R:/ZX/APC/RecordingAug16/CDPBar.txt" using 1:2:3 with yerrorbars linetype -1 linewidth 1.5 notitle
+
