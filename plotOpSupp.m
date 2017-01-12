@@ -33,7 +33,7 @@ p(i,2)=mean(s(i,16:lEnd))>mean(s(i,6:15));
 end
 
 
-figure('Color','w','Position',[100,100,150,130]);
+figure('Color','w','Position',[100,100,150,170]);
 
 
 

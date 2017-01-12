@@ -64,6 +64,7 @@ classdef plotCurve < handle
         
         
         function [pp, dist,cis]=plotTrajectory(obj,samples,filename,pcs)
+            obj.half=false;
             %             path(path,'I:\behavior\reports\z');
             delay=size(samples,3)/4*obj.binSize-5;
             delta=(delay+3)/obj.binSize;
@@ -104,7 +105,7 @@ classdef plotCurve < handle
             %             hpb=plot(smooth(mean(dist(:,:,2)))./normalRef(2),'-r','LineWidth',1);
             %             hbb=plot(smooth(mean(dist(:,:,3)))./normalRef(3),'-k','LineWidth',1);
 %             figure('Color','w','Position',[100,100,350,500]);
-            figure('Color','w','Position',[100,100,350,200]);
+            figure('Color','w','Position',[100,100,350,240]);
             subplot('Position',[0.17,0.17,0.8,0.75]);
             hold on
             
@@ -148,9 +149,61 @@ classdef plotCurve < handle
             %             pp=tp(end);
             
             
+            
+            
+            
+            
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+           obj.half=true; 
+           for repeat=1:repeats
+                [pf1,pf2,bn1,bn2]=obj.getSampleBins(samples,delay,repeat);
+%                 [~,score,latent]=pca([(pf1+pf2)./2;(bn1+bn2)./2]);
+                [~,score,latent]=pca([pf1;pf2;bn1;bn2]);
+                [pf1s,pf2s,bn1s,bn2s]=obj.getScoreBins(score,delay,pcs);
+                out(:,1,repeat)=sqrt(sum((pf1s-pf2s).^2,2));
+                out(:,2,repeat)=sqrt(sum((pf1s-bn2s).^2,2));
+                out(:,3,repeat)=sqrt(sum((bn1s-bn2s).^2,2));
+            end
+
+            dist=permute(out,[3,1,2]);
+            %             close all;
+
+            
+            
+            m=@(mat) mean(mat);
+            cis=bootci(100,m,dist);
+            ci2=permute(cis(:,:,:,2),[1 3 2]);
+           
+            normalRef=permute(mean(mean(dist(:,1:1/obj.binSize,:),1),2),[3,1,2])./100;
+            
+%             fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ci1(1,:)),(fliplr(ci1(2,:)))]./normalRef(1),[0.8,0.8,1],'EdgeColor','none');
+            fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ci2(1,:)),(fliplr(ci2(2,:)))]./normalRef(2),[1,0.8,0.8],'EdgeColor','none');
+%             fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ci3(1,:)),(fliplr(ci3(2,:)))]./normalRef(3),[0.8,0.8,0.8],'EdgeColor','none');
+            
+%             hpp=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,1)))./normalRef(1),'-b','LineWidth',1);
+            hpbh=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,2)))./normalRef(2),':r','LineWidth',1);
+%             hbb=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,3)))./normalRef(3),'-k','LineWidth',1);
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
             if exist('filename','var')
                 if numel(regexpi(filename,'byodor'))>0
-                    legend([hpb,hpp,hbb],{'Odor PF vs. BN','Within PF','Within BN'},'box','off','FontSize',10,'FontName','Helvetica');
+                    legend([hpb,hpbh, hpp,hbb],{'Sample PF vs. BN','Sample, 1/2 neurons','Within PF','Within BN'},'box','off','FontSize',10,'FontName','Helvetica');
                     %                     pause;
                     obj.writeFile(filename);
                 elseif numel(regexpi(filename,'bycorrect'))>0
@@ -294,6 +347,9 @@ classdef plotCurve < handle
             hRec=plot([1:plotLength]-0.5*obj.binSize,(mean(out(:,:,1),2)),'-r','LineWidth',1);
             hShuffle=plot([1:plotLength]-0.5*obj.binSize,(mean(out(:,:,2),2)),'-k','LineWidth',1);
             
+            
+            
+            
 %             yspan=ylim();
 %             set(gca,'YTick',0.25:0.25:1,'YTickLabel',{'25','50','75','100'},'XTick',0:1/obj.binSize:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             set(gca,'YTick',0.25:0.25:1,'XTick',0:1/obj.binSize:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
@@ -325,6 +381,9 @@ classdef plotCurve < handle
             
             %             pp=ranksum(reshape(out(5-4:5,:,1),repeats*5,1),reshape(out(5-4:5,:,2),repeats*5,1));
             %
+            
+            
+            
             if exist('filename','var')
                 %                                         pause;
                 obj.writeFile(filename);
