@@ -2,17 +2,22 @@ classdef plotHeat < handle
     properties
         binSize=2;
         peri=false;
+        delayCorrection=0;
     end
     methods (Access=private)
         
         function plotOdorEdge(obj,delay)
             yspan=ylim();
-            if delay==8
+            if delay==8 && obj.peri
                 xx=[1,2,4,5.5,10,11]*10/obj.binSize+0.5;
+            elseif delay==8
+                xx=[1,2,10,11]*10/obj.binSize+0.5;
             elseif delay==13
                 xx=[1,2,6,7.5,15,16]*10/obj.binSize+0.5;
             elseif delay==5
                 xx=[1,2,7,8]*10/obj.binSize+0.5;
+            elseif delay==4
+                xx=[1,2,6,7]*10/obj.binSize+0.5;
             end
             
             if obj.peri
@@ -29,7 +34,7 @@ classdef plotHeat < handle
                 case 'delay'
                     pfBins=(30/obj.binSize)+1:(delay*10+30)/obj.binSize;
                 case 'trial'
-                    pfBins=(10/obj.binSize)+1:(delay*10+40)/obj.binSize;
+                    pfBins=(10/obj.binSize)+1:((delay+obj.delayCorrection)*10+40)/obj.binSize;
                 case 'sample'
                     pfBins=(20/obj.binSize)+1:30/obj.binSize;
                 case 'lateDelay'
@@ -37,7 +42,7 @@ classdef plotHeat < handle
 %                 case 'peri'
 %                     pfBins=(30/obj.binSize)+1:(delay*10+30)/obj.binSize;
             end
-            bnBins=pfBins+(20*delay+100)./obj.binSize;
+            bnBins=pfBins+(20*(delay+obj.delayCorrection)+100)./obj.binSize;
         end
         
         function [xtick,xlabel]=getXTick(obj,delay)
@@ -66,7 +71,7 @@ classdef plotHeat < handle
     methods
         function plot(obj,samples,periDistr,fileName)
             obj.peri=periDistr;
-            delay=size(samples,3)/4*(obj.binSize/10)-5;
+            delay=size(samples,3)/4*(obj.binSize/10)-5-obj.delayCorrection;
             
 %             close all;
 
@@ -77,7 +82,7 @@ classdef plotHeat < handle
 
 %             figure('Color','w','Position',[100,100,305,190]);
 %             figure('Color','w','Position',[100,100,220,250]);
-            figure('Color','w','Position',[100,100,305,235]);
+            figure('Color','w','Position',[100,100,285,235]);
             subplot('Position',[0.11,0.17,0.42,0.70]);
             %             hold on;
             if periDistr
@@ -87,9 +92,12 @@ classdef plotHeat < handle
             end
             %%%%%%%%%%%   ORIGINAL     %%%%%%%%%%%%%%%%%
             % imagesc(flip(samples(:,pfbins)),[-3,3]); %
+            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-            imagesc(flip(samples([1:110,end-110:end],pfbins)),[-3,3]);
+            imagesc(flip(samples(:,pfbins)),[-3,3]);
+            
+%             imagesc(flip(samples([1:110,end-110:end],pfbins)),[-3,3]);
 %             set(gca,'YTick',[50,100,110,250-119,300-119],'YTickLabel',[50,100,0,250,300]);
             
             [xtick,xtickLabel]=obj.getXTick(delay);
@@ -97,8 +105,8 @@ classdef plotHeat < handle
             
             
             obj.plotOdorEdge(delay);
-%             colormap('jet');
-            colormap(viridis());
+            colormap('jet');
+
             xspan=xlim();
             
 %             yspan=ylim();
@@ -124,8 +132,8 @@ classdef plotHeat < handle
             
             set(gca,'YTick',[],'XTick',xtick,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             obj.plotOdorEdge(delay);
-%             colormap('jet');
-            colormap(viridis());
+            colormap('jet');
+
             
             
             

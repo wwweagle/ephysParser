@@ -1,6 +1,13 @@
 function selStack=sel2wayDNMS(delay)
 binSize=0.5;
-load('sel2wayDNMS8s.mat');
+switch delay
+    case 8
+        load('sel2wayDNMS8s.mat');
+        dashes=[2.5,4.5,20.5,22.5,24.5,25.5];
+    case 4
+        load('sel2wayDNMS8s.mat');
+        dashes=[2.5,4.5,12.5,14.5,16.5,17.5];
+end
 
 currSU=0;
 for f=1:length(selA)
@@ -48,22 +55,28 @@ smp=double(sample<0.05);
 tst=(double(test)<0.05)*2;
 mch=(double(match)<0.05)*4;
 
-smp=smp+tst;
+% smp=smp+tst;
 % selStack=[sum(sel==1)',sum(sel==3)',sum(sel==2)']./size(sel,1);
-selStack=[sum(smp==1)',sum(smp==3)',sum(smp==2)']./size(smp,1);
+selStack=[sum(smp==1)]./size(smp,1);
 % selStack=[sum(smp==1)',sum(smp==2)',sum(smp==3)',sum(smp==4)',sum(smp==5)',sum(smp==6)',sum(smp==7)']./size(smp,1);
-figure('Color','w','Position',[100,100,480,400]);
-subplot('Position',[0.15,0.05,0.8,0.55]);
+figure('Color','w','Position',[100,100,350,250]);
+subplot('Position',[0.15,0.15,0.8,0.55]);
 bh=bar(selStack,'stacked');
 % ph=plot(selStack,'LineWidth',2);
-bh(1).FaceColor='w';
-bh(2).FaceColor=[0.8,0.8,0.8];
-bh(3).FaceColor='k';
-xlim([0,(delay+5)/binSize+0.5]);
+% bh(1).FaceColor='w';
+% bh(2).FaceColor=[0.8,0.8,0.8];
+bh(1).FaceColor='k';
+% xlim([0,(delay+5)/binSize+0.5]);
+xlim([0,(delay+3)/binSize+0.5]);
 % set(gca,'XTick',[2.5,4.5,12.5,14.5,16.5,17.5],'TickDir','out','XTickLabel',[]);%,'YTick',0:0.4:0.8);
-set(gca,'XTick',[2.5,4.5,20.5,22.5,24.5,25.5],'TickDir','out','XTickLabel',[]);%,'YTick',0:0.4:0.8);
+yspan=ylim();
+line(repmat(dashes,2,1),repmat(yspan()',1,length(dashes)),'LineStyle',':','Color','k');
+box off;
+set(gca,'XTick',[2.5,12.5,22.5],'XTickLabel',[0,5,10],'TickDir','out');%,'YTick',0:0.4:0.8);
+xlabel('Time (s)');
+ylim(yspan);
 % legend({'Sample','Mixed','Match/Non-match'});
-legend({'Sample','Mixed','Test'});
+% legend({'Sample'});
 % legend({'Sample','Test','Sample & Test','Match - NonMatch','Sample & Match','Test & Match','Sample, Test & Match'});
 disp(chi2(mergeBin(smp)));
 
