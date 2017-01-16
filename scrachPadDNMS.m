@@ -1,6 +1,6 @@
 lf=listF();
-trajectoryByOdor4s=sampleByType(lf.listDNMS4s,'odor','Average2Hz',-2,0.5,7,[20,20;20,20],100,1);
-trajectoryByOdor8s=sampleByType(lf.listDNMS8s,'odor','Average2Hz',-2,0.5,11,[20,20;20,20],100,1);
+trajectoryByOdor4s=sampleByType(lf.listDNMS4s,'odor','Average2Hz',-2,0.5,7+9,[20,20;20,20],100,1);
+trajectoryByOdor8s=sampleByType(lf.listDNMS8s,'odor','Average2Hz',-2,0.5,11+9,[20,20;20,20],100,1);
 pc=plotCurve;
 pc.binSize=0.5;
 pc.plotTrajectory(trajectoryByOdor8s,'trajectoryByOdor8s',1:20);

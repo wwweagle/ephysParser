@@ -1,17 +1,18 @@
-function [out,sequence]= allByTypeDNMS(type, classify,binStart,binSize,binEnd,isS1,is8s) %type='odor' or 'correct' ; SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
+function [out,sequence] = allByTypeDNMS(type, classify,binStart,binSize,binEnd,isS1,is8s) %type='odor' or 'correct' ; SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
     function genData
-        selA=allDualByTypeDNMS('odor','Average2Hz',-2,0.5,9,true,false);
-        selB=allDualByTypeDNMS('odor','Average2Hz',-2,0.5,9,false,false);
-        selMatchA=allDualByTypeDNMS('match','Average2Hz',-2,0.5,9,true,false);
-        selMatchB=allDualByTypeDNMS('match','Average2Hz',-2,0.5,9,false,false);
-        selTestA=allDualByTypeDNMS('test','Average2Hz',-2,0.5,9,true,false);
-        selTestB=allDualByTypeDNMS('test','Average2Hz',-2,0.5,9,false,false);
+        selA=allByTypeDNMS('odor','Average2Hz',-2,0.5,9,true,false);
+        selB=allByTypeDNMS('odor','Average2Hz',-2,0.5,9,false,false);
+        selMatchA=allByTypeDNMS('match','Average2Hz',-2,0.5,9,true,false);
+        selMatchB=allByTypeDNMS('match','Average2Hz',-2,0.5,9,false,false);
+        selTestA=allByTypeDNMS('test','Average2Hz',-2,0.5,9,true,false);
+        selTestB=allByTypeDNMS('test','Average2Hz',-2,0.5,9,false,false);
     end
 
-
+sequence=cell(1,2);
+seqIdx=1;
 path(path,'r:\ZX\Tools\Matlab Offline Files SDK\')
 dp=javaclasspath('-dynamic');
 if ~ismember('R:\ZX\java\spk2fr\build\classes',dp)
@@ -48,17 +49,22 @@ for fidx=1:size(fileList,1)
     fuIdx=fuIdx+1;
 end
 h=waitbar(0,'0');
-out=cell(length(futures),1);
-for fidx=1:length(futures)
-    tmp=futures(fidx).get();
-    if numel(tmp)>0
-        out{fidx}=tmp;
+out=cell(1,1);
+for fidx=2:length(futures)
+    combo=futures(fidx).get();
+    if ~isempty(combo)
+    tmp=combo.getFRData();
+        if numel(tmp)>0
+            out{seqIdx,1}=tmp;
+            sequence{seqIdx,1}=fileList(fidx,:);
+            sequence{seqIdx,2}=combo.getKeyIdx();
+            seqIdx=seqIdx+1;
+        end
     end
     waitbar(fidx/length(futures),h,[num2str(fidx),'/',num2str(length(futures))]);
 end
 
 fprintf('\n');
 delete(h);
-
 
 end

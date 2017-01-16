@@ -1,11 +1,11 @@
-function selStack=sel2wayDNMS(delay)
+function selStack=sel2wayDNMS(delay,subgrp)
 binSize=0.5;
 switch delay
     case 8
         load('sel2wayDNMS8s.mat');
         dashes=[2.5,4.5,20.5,22.5,24.5,25.5];
     case 4
-        load('sel2wayDNMS8s.mat');
+        load('sel2wayDNMS4s.mat');
         dashes=[2.5,4.5,12.5,14.5,16.5,17.5];
 end
 
