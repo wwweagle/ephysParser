@@ -1,4 +1,4 @@
-function out = sampleByType(fileList,type,classify,binStart,binSize,binEnd,sampleSize,repeats,onlyWellTrain) %type='odor' or 'correct' ; SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
+function [out, sequence] = sampleByType(fileList,type,classify,binStart,binSize,binEnd,sampleSize,repeats,onlyWellTrain) %type='odor' or 'correct' ; SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 % dp=javaclasspath('-dynamic');
@@ -15,6 +15,7 @@ else
 end
 
 out=[];
+sequence=[];
 
 % rf=recordingFiles;
 
@@ -38,11 +39,15 @@ for fidx=1:size(fileList,1)
 end
 h=waitbar(0,'0');
 for fidx=1:length(futures)
-    tmp=futures(fidx).get();
+    combo=futures(fidx).get();
+    if ~isempty(combo)
+    tmp=combo.getFRData();
 %     fprintf('%s\t%d\n',fileList(fidx,:),size(tmp,1));
-    if numel(tmp)>0
-        %         fprintf('%d, %d\n',fidx, size(tmp,1));
-        out=[out;tmp];
+        if numel(tmp)>0
+            %         fprintf('%d, %d\n',fidx, size(tmp,1));
+            out=[out;tmp];
+            sequence=[sequence;combo.getKeyIdx()];
+        end
     end
     %     ts=cell(s2f.getFiringTimesByOdor(odor));
     % %     out=nan(length(ts),length(edges)-1);

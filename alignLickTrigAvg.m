@@ -1,6 +1,7 @@
-function [p,fr]=alignLickTrigAvg(keyIdx,lickTrigAvg)
+function [p,fr]=alignLickTrigAvg(keyIdx,lickTrigAvg,windowCenter)
 
 suIdx=1;
+% windowCenter=0;
 p=[];
 fr=[];
 for i=1:size(keyIdx,1)
@@ -40,6 +41,8 @@ for i=1:size(keyIdx,1)
 %         else
 %             p=[p;ranksum(double(befLick),double(aftLick)),size(befLick,2),sum(befLick,2),sum(aftLick,2)];
 %         end
+
+
             licks=size(lickTrigAvg{j,3}{l,1},1);
             concated=[];
             bf=[];
@@ -47,14 +50,14 @@ for i=1:size(keyIdx,1)
             for m=1:licks
                 if ~isempty(lickTrigAvg{j,3}{l,1})
                     concated=[concated,lickTrigAvg{j,3}{l,1}{m,1}];
-                    bf=[bf;sum(lickTrigAvg{j,3}{l,1}{m,1}>-0.25 & lickTrigAvg{j,3}{l,1}{m,1}<0)];
-                    aft=[aft;sum(lickTrigAvg{j,3}{l,1}{m,1}>0 & lickTrigAvg{j,3}{l,1}{m,1}<0.25)];
+                    bf=[bf;sum(lickTrigAvg{j,3}{l,1}{m,1}>=(-0.25+windowCenter) & lickTrigAvg{j,3}{l,1}{m,1}<windowCenter)];
+                    aft=[aft;sum(lickTrigAvg{j,3}{l,1}{m,1}>=windowCenter & lickTrigAvg{j,3}{l,1}{m,1}<(0.25+windowCenter))];
                 else
                     bf=[bf;0];
                     aft=[aft;0];
                 end
             end
-            p=[p;ranksum(bf,aft)];
+            p=[p;ranksum(bf,aft),size(bf,1),sum(bf),sum(aft)];
             fr=[fr;(histcounts(concated,100))./licks/0.02];
     end
 end

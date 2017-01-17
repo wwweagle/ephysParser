@@ -1,4 +1,5 @@
 function plotShowCaseWJ
+bymatch=true;
 binSize=0.25;
 javaaddpath('R:\ZX\java\spk2fr\build\classes');
 javaaddpath('R:\ZX\java\spk2fr\lib\jmatio.jar');
@@ -8,23 +9,27 @@ s2f=spk2fr.Spk2fr;
 s2f.setWellTrainOnly(1);
 s2f.setRefracRatio(0.0015);
 s2f.setLeastFR('all');
-fl=listF();
-fileList=fl.listDNMS4s();
+% fl=listF();
+% fileList=fl.listDNMS4s();
 % fileList=fl.listDNMS8s();
+id=evalin('base','idselA');
+fileList=cell2mat(id(:,1));
+
 
 % 91_3 Dual-8s-R109-1-32EVT1234-R110-65-96-EVT18-21-0930_1GRP.mat
 % 07002
 % 03008
+% 00101
 
-for fi=70 % 1:size(fileList)
-    %     fh=gobjects(1);
+for fi=1 %:size(fileList)
+    
     fprintf('fid: %d\n',fi);
     ft=load(fileList(fi,:));
     spk=ft.Spk;
     if(numel(spk)>1000)
-    ts1=s2f.getTS(ft.TrialInfo,spk,'wj');
+    ts1=s2f.getTS(ft.TrialInfo,spk,'wjdnms',bymatch);
       if ~isempty(ts1)
-          for tet=2 % 1:size(ts1,1)
+          for tet=1 %:size(ts1,1)
             plotOne(ts1{tet},fi*100+tet);
           end
       end
@@ -37,7 +42,7 @@ end
     function plotOne(ts,fidx)
 %         pf=nan(0,0);
 %         bn=nan(0,0);
-        figure('Color','w','Position',[100,100,350,175]);
+        figure('Color','w','Position',[100,100,350,400]);
 
         subplot('Position',[0.1,0.5,0.85,0.40]);
         hold on;
@@ -68,12 +73,13 @@ end
         end
         
 %         xlim([-1,6]);
-        xlim([-1,10]);
-        ylim([0,41]);
+
         set(gca,'XTick',[],'YTick',[0,17,24,40],'YTickLabel',[0,20,0,20]);
         
-%         plot([0,1,5,6;0,1,5,6],repmat(ylim()',1,4),':k');
-        plot([0,1,9,10;0,1,9,10],repmat(ylim()',1,4),':k');
+        plot([0,1,5,6,7,7.5;0,1,5,6,7,7.5],repmat(ylim()',1,6),':k');
+%         plot([0,1,9,10;0,1,9,10],repmat(ylim()',1,4),':k');
+        xlim([4,10]);
+        ylim([0,41]);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%
         subplot('Position',[0.1,0.1,0.85,0.35]);
         hold on;
@@ -97,17 +103,17 @@ end
 
         plot(-1+binSize/2:binSize:10,(mean(pfHist)),'-r','LineWidth',1);
         plot(-1+binSize/2:binSize:10,(mean(bnHist)),'-b','LineWidth',1);
-%         xlim([-1,6]);
-        xlim([-1,10]);
-        ylim([min(ylim()),max([mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1)),mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1))])]);
-%         plot([0,1,5,6;0,1,5,6],repmat(ylim()',1,4),':k');
-        plot([0,1,9,10;0,1,9,10],repmat(ylim()',1,4),':k');
+
+        plot([0,1,5,6,7,7.5;0,1,5,6,7,7.5],repmat(ylim()',1,6),':k');
+%         plot([0,1,9,10;0,1,9,10],repmat(ylim()',1,4),':k');
         set(gca,'XTick',[0,5,10]);
+        xlim([4,10]);
+%         xlim([-1,10]);
+        ylim([min(ylim()),max([mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1)),mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1))])]);
 %         text(8,diff(ylim())*0.9,sprintf('%05d',fidx),'HorizontalAlignment','center');
 
             set(gcf,'PaperUnits','inches','PaperPosition',[0 0 12 6])
-            print('-r100','-dpng',['png\DNMS8s_Case',sprintf('%05d',fidx),'.png']);
-            print('-r100','-dpng',['png\DNMS8s_Case',sprintf('%05d',fidx),'.png']);
+%             print('-r100','-dpng',['png\DNMS4s_Match_Case',sprintf('%05d',fidx),'.png']);
 %             close all;
 %  pause;
     end

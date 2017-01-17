@@ -3,6 +3,7 @@ classdef plotHeat < handle
         binSize=2;
         peri=false;
         delayCorrection=0;
+        byOdor=true;
     end
     methods (Access=private)
         
@@ -71,7 +72,11 @@ classdef plotHeat < handle
     methods
         function plot(obj,samples,periDistr,fileName)
             obj.peri=periDistr;
-            delay=size(samples,3)/4*(obj.binSize/10)-5-obj.delayCorrection;
+            if obj.byOdor
+                delay=size(samples,3)/4*(obj.binSize/10)-5-obj.delayCorrection;
+            else
+                delay=size(samples,3)/4*(obj.binSize/10)-5-obj.delayCorrection;
+            end
             
 %             close all;
 
@@ -133,9 +138,6 @@ classdef plotHeat < handle
             set(gca,'YTick',[],'XTick',xtick,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             obj.plotOdorEdge(delay);
             colormap('jet');
-
-            
-            
             
 %             if strcmpi(type,'odor')
                 text(size(bnbins,2)/2,size(samples,1)*-0.09,'BN as sample','HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
