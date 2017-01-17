@@ -3,12 +3,17 @@ function [out,sequence] = allByTypeDNMS(type, classify,binStart,binSize,binEnd,i
 %   Detailed explanation goes here
 
     function genData
-        selA=allByTypeDNMS('odor','Average2Hz',-2,0.5,9,true,false);
-        selB=allByTypeDNMS('odor','Average2Hz',-2,0.5,9,false,false);
-        selMatchA=allByTypeDNMS('match','Average2Hz',-2,0.5,9,true,false);
-        selMatchB=allByTypeDNMS('match','Average2Hz',-2,0.5,9,false,false);
-        selTestA=allByTypeDNMS('test','Average2Hz',-2,0.5,9,true,false);
-        selTestB=allByTypeDNMS('test','Average2Hz',-2,0.5,9,false,false);
+        selA=allByTypeDNMS('odor','Average2Hz',-2,0.5,12,true,false);
+        selB=allByTypeDNMS('odor','Average2Hz',-2,0.5,12,false,false);
+        selMatchA=allByTypeDNMS('match','Average2Hz',-2,0.5,12,true,false);
+        selMatchB=allByTypeDNMS('match','Average2Hz',-2,0.5,12,false,false);
+        selTestA=allByTypeDNMS('test','Average2Hz',-2,0.5,12,true,false);
+        selTestB=allByTypeDNMS('test','Average2Hz',-2,0.5,12,false,false);
+           
+        [selMatchAError,seqA]=allByTypeDNMS('matchError','Average2Hz',-2,0.5,12,true,false);
+        [selMatchBError,seqB]=allByTypeDNMS('matchError','Average2Hz',-2,0.5,12,false,false);
+        inA=ismember(cell2mat(seqB(:,1)),cell2mat(seqA(:,1)),'rows');
+        selMatchBError=selMatchBError(inA,:);
     end
 
 sequence=cell(1,2);
