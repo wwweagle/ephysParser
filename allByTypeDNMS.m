@@ -55,7 +55,7 @@ for fidx=1:size(fileList,1)
 end
 h=waitbar(0,'0');
 out=cell(1,1);
-for fidx=2:length(futures)
+for fidx=1:length(futures)
     combo=futures(fidx).get();
     if ~isempty(combo)
     tmp=combo.getFRData();

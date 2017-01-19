@@ -4,6 +4,9 @@ classdef plotHeat < handle
         peri=false;
         delayCorrection=0;
         byOdor=true;
+        sortBy='delay';
+        importIdx=false;
+        idx;
     end
     methods (Access=private)
         
@@ -35,13 +38,15 @@ classdef plotHeat < handle
                 case 'delay'
                     pfBins=(30/obj.binSize)+1:(delay*10+30)/obj.binSize;
                 case 'trial'
-                    pfBins=(10/obj.binSize)+1:((delay+obj.delayCorrection)*10+40)/obj.binSize;
+                    pfBins=(10/obj.binSize)+1:((delay+obj.delayCorrection)*10+38)/obj.binSize;
                 case 'sample'
                     pfBins=(20/obj.binSize)+1:30/obj.binSize;
                 case 'lateDelay'
                     pfBins=(70/obj.binSize)+1:(delay*10+30)/obj.binSize;
 %                 case 'peri'
 %                     pfBins=(30/obj.binSize)+1:(delay*10+30)/obj.binSize;
+                case 'decision'
+                    pfBins=20/obj.binSize+1:40/obj.binSize;
             end
             bnBins=pfBins+(20*(delay+obj.delayCorrection)+100)./obj.binSize;
         end
@@ -80,11 +85,18 @@ classdef plotHeat < handle
             
 %             close all;
 
-            samples=permute(samples,[1,3,2]);
-            [pfbins,bnbins]=obj.getBins('delay',delay);
-            samples(:,1)=mean(samples(:,pfbins),2)-mean(samples(:,bnbins),2);
-            samples=sortrows(samples,1);
-
+            samples=squeeze(samples);
+            if ~obj.importIdx
+                if strcmp(obj.sortBy,'match')
+                    [~,obj.idx]=sort(mean(samples(:,20/obj.binSize+1:40/obj.binSize),2));
+                else
+                    [pfbins,bnbins]=obj.getBins(obj.sortBy,delay);
+                    [~,obj.idx]=sort(mean(samples(:,pfbins),2)-mean(samples(:,bnbins),2));
+                end
+            end
+            
+            samples=samples(obj.idx,:);
+            
 %             figure('Color','w','Position',[100,100,305,190]);
 %             figure('Color','w','Position',[100,100,220,250]);
             figure('Color','w','Position',[100,100,285,235]);
@@ -133,7 +145,7 @@ classdef plotHeat < handle
             % imagesc(flip(samples(:,bnbins)),[-3,3]); %
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-            imagesc(flip(samples([1:110,end-110:end],bnbins)),[-3,3]); 
+            imagesc(flip(samples(:,bnbins)),[-3,3]); 
             
             set(gca,'YTick',[],'XTick',xtick,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             obj.plotOdorEdge(delay);

@@ -7,6 +7,18 @@ switch delay
     case 4
         load('sel2wayDNMS4s.mat');
         dashes=[2.5,4.5,12.5,14.5,16.5,17.5];
+    case 12
+        f4=load('sel2wayDNMS4s.mat');
+        f8=load('sel2wayDNMS4s.mat');
+        selA=[f4.selA;f8.selA];
+        selB=[f4.selB;f8.selB];
+        selMatchA=[f4.selMatchA;f8.selMatchA];
+        selMatchB=[f4.selMatchB;f8.selMatchB];
+        selTestA=[f4.selTestA;f8.selTestA];
+        selTestB=[f4.selTestB;f8.selTestB];
+        selMatchAError=[f4.selMatchAError;f8.selMatchAError];
+        selMatchBError=[f4.selMatchBError;f8.selMatchBError];
+        dashes=[12.5,14.5,16.5,17.5];
 end
 
 
@@ -17,7 +29,7 @@ currSU=0;
 for f=1:length(selA)
     SUCount=size(selA{f},1);
     for SU=1:SUCount
-        for bin=1:(delay+8)/binSize
+        for bin=1:(12)/binSize
             sample(SU+currSU,bin)=ranksum(flatten(selA{f},SU,bin+1/binSize),flatten(selB{f},SU,bin+1/binSize));
             match(SU+currSU,bin)=ranksum(flatten(selMatchA{f},SU,bin+1/binSize),flatten(selMatchB{f},SU,bin+1/binSize));
             test(SU+currSU,bin)=ranksum(flatten(selTestA{f},SU,bin+1/binSize),flatten(selTestB{f},SU,bin+1/binSize));
@@ -29,7 +41,7 @@ currSU=0;
 for f=1:length(selMatchAError)
     SUCount=size(selMatchAError{f},1);
     for SU=1:SUCount
-        for bin=1:(delay+8)/binSize
+        for bin=1:(12)/binSize
             matchError(SU+currSU,bin)=ranksum(flatten(selMatchAError{f},SU,bin+1/binSize),flatten(selMatchBError{f},SU,bin+1/binSize));
         end
     end
@@ -108,3 +120,4 @@ disp(p);
 %     end
 
 end
+

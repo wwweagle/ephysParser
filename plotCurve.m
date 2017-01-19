@@ -327,7 +327,7 @@ classdef plotCurve < handle
             
             %             close all;
 %             figure('Color','w','Position',[100,100,350,500]);
-            figure('Color','w','Position',[100,100,350,115]);
+            figure('Color','w','Position',[100,100,350,240]);
             subplot('Position',[0.17,0.17,0.8,0.75]);
             hold on
             

@@ -12,11 +12,11 @@ load videoData.mat
 % trajectoryByOdor8s=sampleByType(lf.listDNMS8s,'odor','Average2Hz',-2,0.5,11,[20,20;20,20],100,1);
 
 vName={'pcaVideoNone.mp4','pcaVideoNogo.mp4','pcaVideoGo.mp4','pcaVideoGoPC456.mp4','pcaVideoDNMS.avi'};
-isDNMS=[0,0,0,0,1];
-pcs={1:3,[6,5,1],[9,20,20],4:6,1:3};
+isDNMS=[0,0,0,0,1,1];
+pcs={1:3,[6,5,1],[9,20,20],4:6,1:3,1:3};
 setName={'NoneSet.mat','nogoSet.mat','GoSet.mat','GoSet.mat','DNMSSet.mat'};
-dSet={[sNoneDist;trans13(sNoneDist13)],[sNogoDist;trans13(sNogoDist13)],[sGoDist;trans13(sGoDist13)],[sGoDist;trans13(sGoDist13)],trajectoryByOdor8s};
-azel={[100,18],[85,3],[-10,10],[60,10],[95,5]};
+dSet={[sNoneDist;trans13(sNoneDist13)],[sNogoDist;trans13(sNogoDist13)],[sGoDist;trans13(sGoDist13)],[sGoDist;trans13(sGoDist13)],trajectoryByOdor8s,trajectoryByOdor4s};
+azel={[100,18],[85,3],[-10,10],[60,10],[95,5],[-165,10]};
 
 
 pc=plotCurve();
@@ -28,10 +28,10 @@ for o=5
     open(v);
     
 %     for i=[2,2,2,2,2:22,22,22,22,22]
-      for i=0.2:0.2:10
+      for i=10%0.2:0.2:10
         close all;
 %         figure('Color','w','Position',[100,100,160,300]);
-        figure('Color','w','Position',[100,100,1280,720]);
+        figure('Color','w','Position',[100,100,420,200]);
         subplot('Position',[0.07,0.15,0.5,0.8]);
         plotPCA8s3D(dSet{o},i,pcs{o},isDNMS(o),azel{o});
 %         xlim([-25,65]);
