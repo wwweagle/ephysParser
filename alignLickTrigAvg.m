@@ -49,20 +49,36 @@ for i=1:size(keyIdx,1)
             bf=[];
             aft=[];
             base=[];
-            for m=1:licks
-                if ~isempty(lickTrigAvg{j,3}{l,1})
-                    concated=[concated,lickTrigAvg{j,3}{l,1}{m,1}];
-                    bf=[bf;sum(lickTrigAvg{j,3}{l,1}{m,1}>=(-0.25+windowCenter) & lickTrigAvg{j,3}{l,1}{m,1}<windowCenter)];
-                    aft=[aft;sum(lickTrigAvg{j,3}{l,1}{m,1}>=windowCenter & lickTrigAvg{j,3}{l,1}{m,1}<(0.25+windowCenter))];
-                    base=[base;length(lickTrigAvg{j,3}{l,1}{m,1})/2];%sum(lickTrigAvg{j,3}{l,1}{m,1}<0)];
-                else
-                    bf=[bf;0];
-                    aft=[aft;0];
-                    base=[base;0];
+            if strcmpi('r',windowCenter)
+                for m=1:licks
+                    windowCenter=rand-0.5;
+                    if ~isempty(lickTrigAvg{j,3}{l,1})
+                        concated=[concated,lickTrigAvg{j,3}{l,1}{m,1}];
+                        bf=[bf;sum(lickTrigAvg{j,3}{l,1}{m,1}>=(-0.25+windowCenter) & lickTrigAvg{j,3}{l,1}{m,1}<windowCenter)];
+                        aft=[aft;sum(lickTrigAvg{j,3}{l,1}{m,1}>=windowCenter & lickTrigAvg{j,3}{l,1}{m,1}<(0.25+windowCenter))];
+                        base=[base;length(lickTrigAvg{j,3}{l,1}{m,1})/2];%sum(lickTrigAvg{j,3}{l,1}{m,1}<0)];
+                    else
+                        bf=[bf;0];
+                        aft=[aft;0];
+                        base=[base;0];
+                    end
+                end
+            else
+                for m=1:licks
+                    if ~isempty(lickTrigAvg{j,3}{l,1})
+                        concated=[concated,lickTrigAvg{j,3}{l,1}{m,1}];
+                        bf=[bf;sum(lickTrigAvg{j,3}{l,1}{m,1}>=(-0.25+windowCenter) & lickTrigAvg{j,3}{l,1}{m,1}<windowCenter)];
+                        aft=[aft;sum(lickTrigAvg{j,3}{l,1}{m,1}>=windowCenter & lickTrigAvg{j,3}{l,1}{m,1}<(0.25+windowCenter))];
+                        base=[base;length(lickTrigAvg{j,3}{l,1}{m,1})/2];%sum(lickTrigAvg{j,3}{l,1}{m,1}<0)];
+                    else
+                        bf=[bf;0];
+                        aft=[aft;0];
+                        base=[base;0];
+                    end
                 end
             end
             p=[p;ranksum(bf,aft),licks,sum(bf),sum(aft)];
-            fr=[fr;(histcounts(concated,100))./licks/0.02];
+            fr=[fr;(histcounts(concated,102))./licks/0.02];
             mm=mean(base);
             ss=std(base);
 %             disp(ss);
@@ -74,22 +90,46 @@ for i=1:size(keyIdx,1)
     end
 end
 
-lateMean=mean(frz(:,size(frz,2)/2+1:end),2);
-[~,sIdx]=sort(lateMean);
-frz=frz(sIdx,:);
-frz=frz';
-for i=1:size(frz,2)
-    frz(:,i)=smooth(frz(:,i));
-end
-frz=frz';
-frz(frz>2.9 & frz<1000)=2.9;
-cmap=colormap('jet');
-cmap(end,:)=[1,1,1];
-imagesc(frz(1:125,:),[-3 3]);
-colormap(cmap);
-set(gca,'Ytick',[0,50,100,120],'YTickLabel',[0,50,100,350],'XTick',[0,50,100],'XTickLabel',[-1,0,1],'TickDir','out');
-set(gcf,'Color','w','Position',[100,100,320,140]);
+% lateMean=mean(frz(:,size(frz,2)/2+1:end),2);
+% [~,sIdx]=sort(lateMean);
+% frz=frz(sIdx,:);
+% frz=frz';
+% for i=1:size(frz,2)
+%     frz(:,i)=smooth(frz(:,i));
+% end
+% frz=frz';
+% frz(frz>2.9 & frz<1000)=2.9;
+% cmap=colormap('jet');
+% cmap(end,:)=[1,1,1];
+% imagesc(frz(1:125,:),[-3 3]);
+% colormap(cmap);
+% set(gca,'Ytick',[0,50,100,120],'YTickLabel',[0,50,100,350],'XTick',[0,50,100],'XTickLabel',[-1,0,1],'TickDir','out');
 
+figure('Color','w','Position',[100,100,200,140])
+fr=fr';
+for i=1:size(fr,2)
+    fr(:,i)=smooth(fr(:,i));
+end
+fr=fr';
+plot(fr','Color',[0.8 0.8 0.8])
+fr=fr(:,2:end-1);
+hold on
+sem=std(fr)./size(fr,1);
+fill([1:size(fr,2),size(fr,2):-1:1],[mean(fr)-sem,fliplr(mean(fr)+sem)],[0.8,0.8,0.8],'EdgeColor','none');
+ph=plot(mean(fr)','-r','LineWidth',1);
+% line([45,45],[0,4],'LineStyle',':','Color','k','LineWidth',1);
+% line([55,55],[0,4],'LineStyle',':','Color','k','LineWidth',1);
+% line([45,55],[4,4],'LineStyle',':','Color','k','LineWidth',1);
+% line([45,55],[0,0],'LineStyle',':','Color','k','LineWidth',1);
+set(gca,'XTick',[0,50,100],'XTickLabel',[-1,0,1],'TickDir','out','box','off');
+legend(ph,{'Average firing rate'},'box','off');
+
+figure('Color','w','Position',[100,100,100,140]);
+fill([1:21,21:-1:1],[mean(fr(:,40:60))-sem(40:60),fliplr(mean(fr(:,40:60))+sem(40:60))],[0.8,0.8,0.8],'EdgeColor','none');
+plot(mean(fr(:,40:60))','-r','LineWidth',1);
+ylim([0,4]);
+xlim([1,21]);
+set(gca,'XTick',5:5:15,'XTickLabel',-0.1:0.1:0.1,'box','off');
 
 
 end

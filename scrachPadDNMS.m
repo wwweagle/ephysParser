@@ -57,12 +57,6 @@ selMatchBError=allByTypeDNMS('matchError','Average2Hz',3,0.5,12,false,false);
 
 
 
-
-
-
-
-
-
 binSize=0.5;
 selA=allByTypeDNMS('odor','Average2Hz',2,0.5,16,true,true);
 selB=allByTypeDNMS('odor','Average2Hz',2,0.5,16,false,true);
@@ -141,8 +135,23 @@ colormap(cmap);
 [pR1,~,~]=alignLickTrigAvg([id4;id8],[lickTrigAvg4;lickTrigAvg8],0.25);
 [pR2,~,~]=alignLickTrigAvg([id4;id8],[lickTrigAvg4;lickTrigAvg8],0.5);
 [pR3,~,~]=alignLickTrigAvg([id4;id8],[lickTrigAvg4;lickTrigAvg8],0.75);
-bar([sum(pL2(:,1)<0.05)./size(p,1),sum(pL1(:,1)<0.05)./size(p,1),sum(p(:,1)<0.05)./size(p,1),sum(pR1(:,1)<0.05)./size(p,1),sum(pR2(:,1)<0.05)./size(p,1)],'FaceColor','k');
+[pRS,~,~]=alignLickTrigAvg([id4;id8],[lickTrigAvg4;lickTrigAvg8],'r');
+bar([sum(pL2(:,1)<0.05)./size(p,1),sum(pL1(:,1)<0.05)./size(p,1),sum(p(:,1)<0.05)./size(p,1),sum(pR1(:,1)<0.05)./size(p,1),sum(pR2(:,1)<0.05)./size(p,1),sum(pRS(:,1)<0.05)./size(p,1)],'FaceColor','k');
 
 set(gcf,'Color','w','Position',[100,100,330,60]);
-set(gca,'XTickLabel',[-0.5:0.25:0.5]);
-[tab,chi2,chisqP]=crosstab([ones(size(p,1),1);ones(size(p,1),1)*2;ones(size(p,1),1)*3;ones(size(p,1),1)*4;ones(size(p,1),1)*5],[p(:,1)<0.05;pL2(:,1)<0.05;pL1(:,1)<0.05;pR1(:,1)<0.05;pR2(:,1)<0.05]);
+set(gca,'XTickLabel',-0.5:0.25:0.75);
+[tab,chi2,chisqP]=crosstab([ones(size(p,1),1);ones(size(p,1),1)*2;ones(size(p,1),1)*3;ones(size(p,1),1)*4;ones(size(p,1),1)*5;ones(size(p,1),1)*6],...
+    [p(:,1)<0.05;pL2(:,1)<0.05;pL1(:,1)<0.05;pR1(:,1)<0.05;pR2(:,1)<0.05;pRS(:,1)<0.05]);
+xlim([0,7]);
+set(gca,'box','off');
+
+lf=listF();
+decodingByMatch4sCorrect=sampleByType(lf.listDNMS4s,'Match','Average2Hz',4,0.5,12,[30,1;30,1],500,1);
+decodingByMatch8sCorrect=sampleByType(lf.listDNMS8s,'Match','Average2Hz',8,0.5,16,[30,1;30,1],500,1);
+decodingCorrect=[decodingByMatch4sCorrect;decodingByMatch8sCorrect];
+decodingByMatch4sError=sampleByType(lf.listDNMS4s,'MatchError','Average2Hz',4,0.5,12,[30,1;30,1],500,1);
+decodingByMatch8sError=sampleByType(lf.listDNMS8s,'MatchError','Average2Hz',8,0.5,16,[30,1;30,1],500,1);
+decodingError=[decodingByMatch4sError;decodingByMatch8sError];
+pcd=plotCrossDecoding;
+noTrialIdx=(decodingError(:,1,1)<10000);
+pcd.plotDecoding(decodingCorrect(noTrialIdx,:,:),decodingError(noTrialIdx,:,:),'crossDecode')
