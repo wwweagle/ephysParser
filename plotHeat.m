@@ -7,6 +7,7 @@ classdef plotHeat < handle
         sortBy='delay';
         importIdx=false;
         idx;
+        smooth=false;
     end
     methods (Access=private)
         
@@ -14,14 +15,8 @@ classdef plotHeat < handle
             yspan=ylim();
             if delay==8 && obj.peri
                 xx=[1,2,4,5.5,10,11]*10/obj.binSize+0.5;
-            elseif delay==8
-                xx=[1,2,10,11]*10/obj.binSize+0.5;
-            elseif delay==13
-                xx=[1,2,6,7.5,15,16]*10/obj.binSize+0.5;
-            elseif delay==5
-                xx=[1,2,7,8]*10/obj.binSize+0.5;
-            elseif delay==4
-                xx=[1,2,6,7]*10/obj.binSize+0.5;
+            else
+                xx=[1,2,delay+2,delay+3,delay+4,delay+4.5]*10/obj.binSize+0.5;
             end
             
             if obj.peri
@@ -38,7 +33,7 @@ classdef plotHeat < handle
                 case 'delay'
                     pfBins=(30/obj.binSize)+1:(delay*10+30)/obj.binSize;
                 case 'trial'
-                    pfBins=(10/obj.binSize)+1:((delay+obj.delayCorrection)*10+38)/obj.binSize;
+                    pfBins=(10/obj.binSize)+1:(delay+3+obj.delayCorrection+1)*10/obj.binSize;
                 case 'sample'
                     pfBins=(20/obj.binSize)+1:30/obj.binSize;
                 case 'lateDelay'
@@ -52,19 +47,12 @@ classdef plotHeat < handle
         end
         
         function [xtick,xlabel]=getXTick(obj,delay)
-            xtick=(0:10:delay*10+30)/obj.binSize;
+            xtick=(0:10:delay*10+30+obj.delayCorrection*10)/obj.binSize;
 %             xtick=(5:10:delay*10+30)/obj.binSize;
 %               xtick=[0.5,1.5,3,4.75,7.75,10.5]*10/obj.binSize+0.5;
-            switch delay
-                case 4
-                    xlabel={'','0','','','','','5',''};
-                case 5
-                    xlabel={'','0','','','','','5','',''};
-                case 8
-                    xlabel={'','0','','','','','5','','','','','10'};
-%                       xlabel={'B','S','E','D','L','T'};
-                case 13
-                    xlabel={'','0','','','','','5','','','','','10','','','','',''};
+            xlabel=cell(1,length(xtick));
+            for i=2:5:length(xtick)
+                xlabel{i}=num2str(i-2);
             end
             if obj.peri
                 xtick=[];
@@ -111,8 +99,16 @@ classdef plotHeat < handle
             % imagesc(flip(samples(:,pfbins)),[-3,3]); %
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            imagesc(flip(samples(:,pfbins)),[-3,3]);
+            if obj.smooth
+                smt=flip(samples(:,pfbins))';
+                for i=1:size(smt,2)
+                    smt(:,i)=smooth(smt(:,i));
+                end
+                smt=smt';
+                imagesc(smt,[-3,3]);
+            else
+                imagesc(flip(samples(:,pfbins)),[-3,3]);
+            end
             
 %             imagesc(flip(samples([1:110,end-110:end],pfbins)),[-3,3]);
 %             set(gca,'YTick',[50,100,110,250-119,300-119],'YTickLabel',[50,100,0,250,300]);
@@ -145,7 +141,16 @@ classdef plotHeat < handle
             % imagesc(flip(samples(:,bnbins)),[-3,3]); %
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-            imagesc(flip(samples(:,bnbins)),[-3,3]); 
+            if obj.smooth
+                smt=flip(samples(:,bnbins))';
+                for i=1:size(smt,2)
+                    smt(:,i)=smooth(smt(:,i));
+                end
+                smt=smt';
+                imagesc(smt,[-3,3]);
+            else
+                imagesc(flip(samples(:,bnbins)),[-3,3]);
+            end
             
             set(gca,'YTick',[],'XTick',xtick,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             obj.plotOdorEdge(delay);
@@ -161,10 +166,39 @@ classdef plotHeat < handle
 %             text(xtick(end)*-0.3,size(samples,1)*1.2,'Time(s)','FontSize',10,'FontName','Helvetica');
             obj.writeFile(fileName);
         end
+        
+        function curve=genCurve(obj,samples)
+            if obj.byOdor
+                delay=size(samples,3)/4*(obj.binSize/10)-5-obj.delayCorrection;
+            else
+                delay=size(samples,3)/4*(obj.binSize/10)-5-obj.delayCorrection;
+            end
+            
+            samples=squeeze(samples);
+            preResp=(delay+4)*10/obj.binSize+1:(delay+5)*10/obj.binSize;
+            preResp=[preResp,preResp+size(samples,2)/2];
+            if ~obj.importIdx
+                if strcmp(obj.sortBy,'match')
+                    [~,obj.idx]=sort(mean(samples(:,20/obj.binSize+1:40/obj.binSize),2));
+                elseif strcmp(obj.sortBy,'matchCurve')
+
+                    [~,obj.idx]=sort(mean(samples(:,preResp),2));
+                else
+                    [pfbins,bnbins]=obj.getBins(obj.sortBy,delay);
+                    [~,obj.idx]=sort(mean(samples(:,pfbins),2)-mean(samples(:,bnbins),2));
+                end
+            end
+            
+            samples=samples(obj.idx,:);
+            curve=mean(samples(:,preResp),2);
+            
+        end
+
 
         function writeFile(obj,fileName)
                 set(gcf,'PaperPositionMode','auto');
                 savefig([fileName,'.fig']);
+                disp('file saved');
         end
     end
 end

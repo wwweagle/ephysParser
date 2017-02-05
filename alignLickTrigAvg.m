@@ -105,31 +105,48 @@ end
 % colormap(cmap);
 % set(gca,'Ytick',[0,50,100,120],'YTickLabel',[0,50,100,350],'XTick',[0,50,100],'XTickLabel',[-1,0,1],'TickDir','out');
 
-figure('Color','w','Position',[100,100,200,140])
-fr=fr';
-for i=1:size(fr,2)
-    fr(:,i)=smooth(fr(:,i));
-end
-fr=fr';
-plot(fr','Color',[0.8 0.8 0.8])
+figure('Color','w','Position',[100,100,350,80]);
+% fr=fr';
+% for i=1:size(fr,2)
+%     fr(:,i)=smooth(fr(:,i));
+% end
+% fr=fr';
+% plot(fr','Color',[0.8 0.8 0.8])
 fr=fr(:,2:end-1);
+shuf=fr(:,randperm(size(fr,2)));
 hold on
-sem=std(fr)./size(fr,1);
-fill([1:size(fr,2),size(fr,2):-1:1],[mean(fr)-sem,fliplr(mean(fr)+sem)],[0.8,0.8,0.8],'EdgeColor','none');
+% sem=std(fr)./size(fr,1);
+ci=bootci(100,@(x) mean(x),fr);
+ciShuf=bootci(100,@(x) mean(x),shuf);
+bootShuf=bootstrp(10000,@(x) mean(x),fr);
+bootP=nan(1,10);
+for i=1:10
+    sM=mean(mean(bootShuf(i*10-9:i*10)));
+    dM=abs(mean(mean(fr(:,i*10-9:i*10)))-sM);
+    bootP(i)=sum(abs(mean(bootShuf(:,i*10-9:i*10),2)-sM)>=dM)./10000;
+end
+disp('BootP');
+disp(bootP);
+
+
+fill([1:size(fr,2),size(fr,2):-1:1],[ciShuf(2,:),fliplr(ciShuf(1,:))],[0.8,0.8,0.8],'EdgeColor','none');
+fill([1:size(fr,2),size(fr,2):-1:1],[ci(2,:),fliplr(ci(1,:))],[1,0.8,0.8],'EdgeColor','none');
 ph=plot(mean(fr)','-r','LineWidth',1);
+sh=plot(mean(shuf)','-k','LineWidth',1);
 % line([45,45],[0,4],'LineStyle',':','Color','k','LineWidth',1);
 % line([55,55],[0,4],'LineStyle',':','Color','k','LineWidth',1);
 % line([45,55],[4,4],'LineStyle',':','Color','k','LineWidth',1);
 % line([45,55],[0,0],'LineStyle',':','Color','k','LineWidth',1);
-set(gca,'XTick',[0,50,100],'XTickLabel',[-1,0,1],'TickDir','out','box','off');
-legend(ph,{'Average firing rate'},'box','off');
+set(gca,'XTick',[0:10:100],'XTickLabel',[-1:0.1:1],'TickDir','in','box','off');
+xlim([0,100])
+legend([ph,sh],{'Average firing rate','Shuffle'},'box','off');
 
-figure('Color','w','Position',[100,100,100,140]);
-fill([1:21,21:-1:1],[mean(fr(:,40:60))-sem(40:60),fliplr(mean(fr(:,40:60))+sem(40:60))],[0.8,0.8,0.8],'EdgeColor','none');
-plot(mean(fr(:,40:60))','-r','LineWidth',1);
-ylim([0,4]);
-xlim([1,21]);
-set(gca,'XTick',5:5:15,'XTickLabel',-0.1:0.1:0.1,'box','off');
+% figure('Color','w','Position',[100,100,100,140]);
+% fill([1:21,21:-1:1],[mean(fr(:,40:60))-sem(40:60),fliplr(mean(fr(:,40:60))+sem(40:60))],[0.8,0.8,0.8],'EdgeColor','none');
+% plot(mean(fr(:,40:60))','-r','LineWidth',1);
+% ylim([0,4]);
+% xlim([1,21]);
+% set(gca,'XTick',5:5:15,'XTickLabel',-0.1:0.1:0.1,'box','off');
 
 
 end

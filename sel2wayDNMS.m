@@ -1,4 +1,4 @@
-function [selStack,p]=sel2wayDNMS(delay,subgrp)
+function [selStack,p,smp]=sel2wayDNMS(delay,subgrp,displayOff)
 binSize=0.5;
 switch delay
     case 8
@@ -9,7 +9,7 @@ switch delay
         dashes=[2.5,4.5,12.5,14.5,16.5,17.5];
     case 12
         f4=load('sel2wayDNMS4s.mat');
-        f8=load('sel2wayDNMS4s.mat');
+        f8=load('sel2wayDNMS8s.mat');
         selA=[f4.selA;f8.selA];
         selB=[f4.selB;f8.selB];
         selMatchA=[f4.selMatchA;f8.selMatchA];
@@ -21,15 +21,11 @@ switch delay
         dashes=[12.5,14.5,16.5,17.5];
 end
 
-
-
-
-
 currSU=0;
 for f=1:length(selA)
     SUCount=size(selA{f},1);
     for SU=1:SUCount
-        for bin=1:(12)/binSize
+        for bin=1:(delay+8)/binSize
             sample(SU+currSU,bin)=ranksum(flatten(selA{f},SU,bin+1/binSize),flatten(selB{f},SU,bin+1/binSize));
             match(SU+currSU,bin)=ranksum(flatten(selMatchA{f},SU,bin+1/binSize),flatten(selMatchB{f},SU,bin+1/binSize));
             test(SU+currSU,bin)=ranksum(flatten(selTestA{f},SU,bin+1/binSize),flatten(selTestB{f},SU,bin+1/binSize));
@@ -52,7 +48,7 @@ end
 
 % s=combine8_13(sample,s13)<0.05;
 % d=(combine8_13(distractor,d13)<0.05)*2;
-if exist('subgrp','var')
+if exist('subgrp','var') && ~isempty(subgrp)
     smp=double(sample(subgrp,:)<0.05);
     tst=(double(test(subgrp,:))<0.05)*2;
     mch=(double(match(subgrp,:))<0.05)*4;
@@ -65,20 +61,39 @@ end
 smp=smp+tst+mch;
 % selStack=[sum(sel==1)',sum(sel==3)',sum(sel==2)']./size(sel,1);
 % selStack=[sum(smp==1)]./size(smp,1);
-% selStack=[sum(smp==1)',sum(smp==2)',sum(smp==3)',sum(smp==4)',sum(smp==5)',sum(smp==6)',sum(smp==7)']./size(smp,1);
-selStack=[sum(mch==4)'./size(mch,1),sum(mchE==8)'./size(mchE,1)];
-figure('Color','w','Position',[100,100,350,250]);
+selStack=[sum(smp==1)',sum(smp==2)',sum(smp==3)',sum(smp==4)',sum(smp==5)',sum(smp==6)',sum(smp==7)']./size(smp,1);
+% selStack=[sum(mch==4)'./size(mch,1)];
+if exist('displayOff','var')  && displayOff
+    figure('Color','w','Position',[100,100,350,250],'Visible','off');
+else
+    figure('Color','w','Position',[100,100,350,250]);
+end
 subplot('Position',[0.15,0.15,0.8,0.55]);
-% bh=bar(selStack,'stacked');
-bh=bar(selStack,1,'hist');
+bh=bar(selStack,'stacked');
+colors={[0,1,1],...
+    [1,0,1],...
+    [0,0,1],...
+    [1,1,0],...
+    [0,1,0],...
+    [1,0,0],...
+    [0,0,0]};
+for i=1:7
+    bh(i).FaceColor=colors{i};
+end
+
+
+% bh=bar(selStack,1,'hist');
+
 % ph=plot(selStack,'LineWidth',2);
-bh(1).FaceColor='k';
-bh(2).FaceColor='w';
+% bh(1).FaceColor='k';
+% bh(2).FaceColor='w';
 % bh(1).FaceColor='k';
 % xlim([0,(delay+5)/binSize+0.5]);
 xlim([0,(delay+6)/binSize+0.5]);
 % set(gca,'XTick',[2.5,4.5,12.5,14.5,16.5,17.5],'TickDir','out','XTickLabel',[]);%,'YTick',0:0.4:0.8);
+ylim([0,0.8]);
 yspan=ylim();
+
 line(repmat(dashes,2,1),repmat(yspan()',1,length(dashes)),'LineStyle',':','Color','k');
 box off;
 set(gca,'XTick',[2.5,12.5,22.5],'XTickLabel',[0,5,10],'TickDir','out');%,'YTick',0:0.4:0.8);
@@ -86,10 +101,11 @@ xlabel('Time (s)');
 ylim(yspan);
 % legend({'Sample','Mixed','Match/Non-match'});
 % legend({'Sample'});
-% legend({'Sample','Test','Sample & Test','Match - NonMatch','Sample & Match','Test & Match','Sample, Test & Match'});
-legend({'Correct trials','Incorrect trials'});
-p=chi2(mergeBin(mch),mergeBin(mchE));
-disp(p);
+legend({'Sample','Test','Sample & Test','Match - NonMatch','Sample & Match','Test & Match','Sample, Test & Match'});
+% legend({'Correct trials','Incorrect trials'});
+% p=chi2(mergeBin(mch),mergeBin(mchE));
+p=chi2base(mch==4);
+% disp(p);
 
     function out=mergeBin(in)
         out=reshape(in,[],size(in,2)/(1/binSize));
@@ -102,6 +118,17 @@ disp(p);
         for i=1:size(in1,2)
 %             [~,~,out(i-1)]=crosstab(binTemplate,[in(:,1)==1 | in(:,1)==3;in(:,i)==1 | in(:,1)==3]);
             [~,~,out(i)]=crosstab(binTemplate,[in1(:,i)==0;in2(:,i)==0]);
+        end
+    end
+
+
+
+   function out=chi2base(in)
+       t=mergeBin(in);
+        out=nan(1,size(t,2)-6);
+        for i=7:size(t,2)
+            binTemplate=[ones(size(t,1),1);ones(size(t,1),1)*2];
+            [~,~,out(i-6)]=crosstab(binTemplate,[t(:,6)==1;t(:,i)==1]);
         end
     end
 
