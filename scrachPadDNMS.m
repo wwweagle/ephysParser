@@ -146,16 +146,24 @@ xlim([0,7]);
 set(gca,'box','off');
 
 lf=listF();
-decodingByMatch4sCorrect=sampleByType(lf.listDNMS4s,'Match','Average2Hz',4,0.5,12,[30,1;30,1],500,1);
-decodingByMatch8sCorrect=sampleByType(lf.listDNMS8s,'Match','Average2Hz',8,0.5,16,[30,1;30,1],500,1);
-decodingCorrect=[decodingByMatch4sCorrect;decodingByMatch8sCorrect];
-decodingByMatch4sError=sampleByType(lf.listDNMS4s,'MatchError','Average2Hz',4,0.5,12,[30,1;30,1],500,1);
-decodingByMatch8sError=sampleByType(lf.listDNMS8s,'MatchError','Average2Hz',8,0.5,16,[30,1;30,1],500,1);
-decodingError=[decodingByMatch4sError;decodingByMatch8sError];
-pcd=plotCrossDecoding;
-noTrialIdx=(decodingError(:,1,1)<10000);
-pcd.plotDecoding(decodingCorrect(noTrialIdx,:,:),decodingError(noTrialIdx,:,:),'crossDecode')
+dc=0;
+pl=0;
+while pl<0.05 & dc<10
+    decodingByMatch4sCorrect=sampleByType(lf.listDNMS4s,'Match','Average2Hz',-2,0.5,12,[30,1;30,1],500,1);
+    decodingByMatch8sCorrect=sampleByType(lf.listDNMS8s,'Match','Average2Hz',2,0.5,16,[30,1;30,1],500,1);
+    decodingCorrect=[decodingByMatch4sCorrect;decodingByMatch8sCorrect];
+    decodingByMatch4sError=sampleByType(lf.listDNMS4s,'MatchError','Average2Hz',-2,0.5,12,[30,1;30,1],500,1);
+    decodingByMatch8sError=sampleByType(lf.listDNMS8s,'MatchError','Average2Hz',2,0.5,16,[30,1;30,1],500,1);
+    decodingError=[decodingByMatch4sError;decodingByMatch8sError];
+    pcd=plotCrossDecoding;
+    noTrialIdx=(decodingError(:,1,1)<10000);
 
+    pc=0;
+    while pl<0.05 & pc<20
+        [pb,pl]=pcd.plotDecoding(decodingCorrect(noTrialIdx,:,:),decodingError(noTrialIdx,:,:),4,'crossDecode')
+        pl=min(pb,pl);
+    end
+end
 
 
 
@@ -403,14 +411,14 @@ selMatchBError=selMatchBError(inA,:);
 save('sel2wayDNMS4s.mat','binSize','selA','selB','selTestA','selTestB','selMatchA','selMatchB','selMatchAError','selMatchBError');
 
 % binSize=1;
-selA=allByTypeDNMS('sample','Average2Hz',-2,binSize,16,true,true);
-selB=allByTypeDNMS('sample','Average2Hz',-2,binSize,16,false,true);
-selTestA=allByTypeDNMS('test','Average2Hz',-2,binSize,16,true,true);
-selTestB=allByTypeDNMS('test','Average2Hz',-2,binSize,16,false,true);
-selMatchA=allByTypeDNMS('match','Average2Hz',-2,binSize,16,true,true);
-selMatchB=allByTypeDNMS('match','Average2Hz',-2,binSize,16,false,true);
-[selMatchAError,seqA]=allByTypeDNMS('matchError','Average2Hz',-2,binSize,16,true,true);
-[selMatchBError,seqB]=allByTypeDNMS('matchError','Average2Hz',-2,binSize,16,false,true);
+selA=allByTypeDNMS('sample','Average2Hz',2,binSize,16,true,true);
+selB=allByTypeDNMS('sample','Average2Hz',2,binSize,16,false,true);
+selTestA=allByTypeDNMS('test','Average2Hz',2,binSize,16,true,true);
+selTestB=allByTypeDNMS('test','Average2Hz',2,binSize,16,false,true);
+selMatchA=allByTypeDNMS('match','Average2Hz',2,binSize,16,true,true);
+selMatchB=allByTypeDNMS('match','Average2Hz',2,binSize,16,false,true);
+[selMatchAError,seqA]=allByTypeDNMS('matchError','Average2Hz',2,binSize,16,true,true);
+[selMatchBError,seqB]=allByTypeDNMS('matchError','Average2Hz',2,binSize,16,false,true);
 inA=ismember(cell2mat(seqB(:,1)),cell2mat(seqA(:,1)),'rows');
 selMatchBError=selMatchBError(inA,:);
 inB=ismember(cell2mat(seqA(:,1)),cell2mat(seqB(:,1)),'rows');
@@ -461,13 +469,9 @@ mNmIndex([heatByOdor4sMatch;trans8s(heatByOdor8sMatch)],[heatByOdor4sNonm;trans8
     [heatByOdor4sMatchError;trans8s(heatByOdor8sMatchError)],[heatByOdor4sNonmError;trans8s(heatByOdor8sNonmError)],...
     [selId4;selId8(:,5:end)],true,4);
 
-mNmIndex([heatByOdor4sMatch],[heatByOdor4sNonm],...
-    [heatByOdor4sMatchError],[heatByOdor4sNonmError],...
-    [selId4],false,4);
-
 
 [~,~,selId4]=sel2wayDNMS(4,[],false);
-[~,~,selId8]=sel2wayDNMS(8,[],false);
+sel2wayDNMS(12,[],false);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% sample cross decode %%%

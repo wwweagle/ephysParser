@@ -19,6 +19,7 @@ switch delay
         selMatchAError=[f4.selMatchAError;f8.selMatchAError];
         selMatchBError=[f4.selMatchBError;f8.selMatchBError];
         dashes=[12.5,14.5,16.5,17.5];
+        delay=4;
 end
 
 currSU=0;

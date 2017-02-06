@@ -22,6 +22,8 @@ hold on;
 hc=plot(idxCorr(idx),'r.','MarkerFaceColor','r');
 he=plot(idxEror(idx),'k.','MarkerFaceColor','k');
 % errorbar(1:length(idx),mean(idxCorr(idx),2),ci(1,:)-ci(2,:),'.r','LineWidth',1);
+assignin('base','idxCorr',idxCorr);
+assignin('base','idxEror',idxEror);
 xlim([0,length(idx)+1]);
 xlabel('Neuron No.');
 ylabel('Match/non-match selective index');
