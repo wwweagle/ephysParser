@@ -24,6 +24,7 @@ fileList=cell2mat(id(:,1));
 for fi=1 %:size(fileList)
     
     fprintf('fid: %d\n',fi);
+    disp(fileList(fi,:));
     ft=load(fileList(fi,:));
     spk=ft.Spk;
     if(numel(spk)>1000)

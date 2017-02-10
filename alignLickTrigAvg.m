@@ -67,7 +67,7 @@ for i=1:size(keyIdx,1)
                 for m=1:licks
                     if ~isempty(lickTrigAvg{j,3}{l,1})
                         concated=[concated,lickTrigAvg{j,3}{l,1}{m,1}];
-                        bf=[bf;sum(lickTrigAvg{j,3}{l,1}{m,1}>=(-0.25+windowCenter) & lickTrigAvg{j,3}{l,1}{m,1}<windowCenter)];
+                        1`bf=[bf;sum(lickTrigAvg{j,3}{l,1}{m,1}>=(-0.25+windowCenter) & lickTrigAvg{j,3}{l,1}{m,1}<windowCenter)];
                         aft=[aft;sum(lickTrigAvg{j,3}{l,1}{m,1}>=windowCenter & lickTrigAvg{j,3}{l,1}{m,1}<(0.25+windowCenter))];
                         base=[base;length(lickTrigAvg{j,3}{l,1}{m,1})/2];%sum(lickTrigAvg{j,3}{l,1}{m,1}<0)];
                     else

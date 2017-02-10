@@ -1,12 +1,15 @@
 function [selStack,p,smp]=sel2wayDNMS(delay,subgrp,displayOff)
 binSize=0.5;
 switch delay
-    case 8
-        load('sel2wayDNMS8s.mat');
-        dashes=[2.5,4.5,20.5,22.5,24.5,25.5];
-    case 4
-        load('sel2wayDNMS4s.mat');
-        dashes=[2.5,4.5,12.5,14.5,16.5,17.5];
+%     case 8
+%         load('sel2wayDNMS8s.mat');
+%         dashes=[2.5,4.5,20.5,22.5,24.5,25.5];
+%     case 4
+%         load('sel2wayDNMS4s.mat');
+%         dashes=[2.5,4.5,12.5,14.5,16.5,17.5];
+    case 5
+        load('sel2wayDNMS5s.mat');
+        dashes=[2.5,4.5,14.5,16.5,18.5,19.5];
     case 12
         f4=load('sel2wayDNMS4s.mat');
         f8=load('sel2wayDNMS8s.mat');
@@ -27,6 +30,7 @@ for f=1:length(selA)
     SUCount=size(selA{f},1);
     for SU=1:SUCount
         for bin=1:(delay+8)/binSize
+%             fprintf('%d, %d, %d, %d\n',f,SU,SUCount,bin);
             sample(SU+currSU,bin)=ranksum(flatten(selA{f},SU,bin+1/binSize),flatten(selB{f},SU,bin+1/binSize));
             match(SU+currSU,bin)=ranksum(flatten(selMatchA{f},SU,bin+1/binSize),flatten(selMatchB{f},SU,bin+1/binSize));
             test(SU+currSU,bin)=ranksum(flatten(selTestA{f},SU,bin+1/binSize),flatten(selTestB{f},SU,bin+1/binSize));
@@ -43,6 +47,7 @@ for f=1:length(selMatchAError)
         end
     end
     currSU=currSU+SUCount;
+    
 end
 
 
@@ -126,14 +131,15 @@ p=chi2base(mch==4);
 
    function out=chi2base(in)
        t=mergeBin(in);
-        out=nan(1,size(t,2)-6);
-        for i=7:size(t,2)
+        out=nan(1,size(t,2)-1);
+        for i=2:size(t,2)
             binTemplate=[ones(size(t,1),1);ones(size(t,1),1)*2];
-            [~,~,out(i-6)]=crosstab(binTemplate,[t(:,6)==1;t(:,i)==1]);
+            [~,~,out(i)]=crosstab(binTemplate,[t(:,1)==1;t(:,i)==1]);
         end
     end
 
     function out=flatten(data,SU,bin)
+        
         if iscell(data)
             out=shiftdim(data{SU}(:,bin));
         else

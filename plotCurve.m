@@ -11,8 +11,10 @@ classdef plotCurve < handle
                 xx=[1,2,10,11]./obj.binSize;
             elseif delay==13
                 xx=[1,2,6,7.5,15,16]./obj.binSize;
-            elseif delay==4
+            else
                 xx=[1,2,6,7]./obj.binSize;
+            
+                
             end
             for curX=1:length(xx)
                 line([xx(curX),xx(curX)],ylim(),'LineStyle',':','LineWidth',0.5,'Color','k');
@@ -55,6 +57,9 @@ classdef plotCurve < handle
                     labels={'','0','','','','','5','','','','','10'};
                 case 13
                     labels={'','0','','','','','5','','','','','10','','','','',''};
+                otherwise
+                    labels={'','0','','','','','5','','','','','10'};
+                    
             end
         end
     end
@@ -94,7 +99,9 @@ classdef plotCurve < handle
             ci2=permute(cis(:,:,:,2),[1 3 2]);
             ci3=permute(cis(:,:,:,3),[1 3 2]);
             
-            normalRef=permute(mean(mean(dist(:,1:1/obj.binSize,:),1),2),[3,1,2])./100;
+            refBins=1:1/obj.binSize;
+%             refBins=5/obj.binSize+1:6/obj.binSize;
+            normalRef=permute(mean(mean(dist(:,refBins,:),1),2),[3,1,2])./100;
             
             plotLength=delta;
             %             fill([1:plotLength,plotLength:-1:1],[smooth(ci1(1,:))',smooth(fliplr(ci1(2,:)))']./normalRef(1),[0.8,0.8,1],'EdgeColor','none');
@@ -138,9 +145,9 @@ classdef plotCurve < handle
             
             obj.plotOdorEdge(delay);
             
-            text(-0.17*plotLength,mean(yspan),'Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
-            text(-0.12*plotLength,mean(yspan),'distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
-            
+%             text(-0.17*plotLength,mean(yspan),'Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+%             text(-0.12*plotLength,mean(yspan),'distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+            ylabel('Normalized distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             %             text(-3,yspan(1)+(yspan(2)-yspan(1))*0.5,'(z-score)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             text(3/obj.binSize,yspan(1)+(yspan(2)-yspan(1))*0.95,['n = ',num2str(size(pf1,2))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
             
@@ -365,9 +372,7 @@ classdef plotCurve < handle
             obj.plotOdorEdge(delay);
             
             legend([hRec, hShuffle],{'Recording Data','Shuffled Data'},'box','off','FontSize',10,'FontName','Helvetica');
-            
-            text(-0.15*diff(xlim()),0.625,'Decoding','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
-            text(-0.1*diff(xlim()),0.625,'Accuracy (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+            ylabel('Decoding Accuracy','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             text(3/obj.binSize,1,['n = ',num2str(size(samples,1))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
             
             %             pp=min([ranksum(reshape(out(5-4:5,:,1),repeats*5,1),reshape(out(5-4:5,:,2),repeats*5,1)),...
@@ -452,9 +457,9 @@ classdef plotCurve < handle
             set(gca,'XTick',0:5:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             legend([ht, hf],{'Correct','Incorrect'},'box','off','FontSize',10,'FontName','Helvetica');
             text(3/obj.binSize,yspan(2),['n = ',num2str(size(trajectoryA,1))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
-            yspan=ylim();
-            text(-0.17*plotLength,mean(yspan),'Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
-            text(-0.12*plotLength,mean(yspan),'PF-BN distance (Hz)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+%             yspan=ylim();
+            ylabel('Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+
             
         end
         

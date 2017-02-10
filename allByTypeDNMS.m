@@ -1,10 +1,10 @@
-function [out,sequence] = allByTypeDNMS(type, classify,binStart,binSize,binEnd,isS1,is8s) %type='odor' or 'correct' ; SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
+function [out,sequence] = allByTypeDNMS(type, classify,binStart,binSize,binEnd,isS1,delayLen,welltrained) %type='odor' or 'correct' ; SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
     function genData
-        selA=allByTypeDNMS('odor','Average2Hz',-2,0.5,12,true,false);
-        selB=allByTypeDNMS('odor','Average2Hz',-2,0.5,12,false,false);
+        selA=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,true,false);
+        selB=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,false,false);
         selMatchA=allByTypeDNMS('match','Average2Hz',-2,0.5,12,true,false);
         selMatchB=allByTypeDNMS('match','Average2Hz',-2,0.5,12,false,false);
         selTestA=allByTypeDNMS('test','Average2Hz',-2,0.5,12,true,false);
@@ -34,7 +34,7 @@ end
 %     para=spk2fr.MatPara(2,0.0015);
 % end
 
-para=spk2fr.MatPara(1,0.0015);
+para=spk2fr.MatPara(welltrained,0.0015);
 clear dp;
 
 
@@ -42,10 +42,15 @@ para.setFormat('WJAllFR');
 
 
 fl=listF();
-if exist('is8s','var') && is8s
-    fileList=fl.listDNMS8s();
-else
-    fileList=fl.listDNMS4s();
+if exist('delayLen','var') && ismember(delayLen,[4,5,8])
+    switch delayLen
+        case 8
+%             fileList=fl.listDNMS8s();
+        case 5
+            fileList=fl.listDNMSNaive5s();
+        otherwise
+%         fileList=fl.listDNMS4s();
+    end
 end
 fuIdx=1;
 

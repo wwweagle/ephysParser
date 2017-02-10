@@ -29,7 +29,7 @@ classdef plotCrossDecoding < handle
     
     methods
         
-        function [pb,pl]=plotDecoding(obj,correctS,errorS,delay,both)
+        function [pb,pl]=plotDecoding(obj,correctS,errorS,delay)
 
             roi=(delay+8)/obj.binSize;
             correctS=permute(correctS,[1,3,2]);
@@ -115,8 +115,11 @@ classdef plotCrossDecoding < handle
                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
                 pAuto=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,3),repeats/obj.binSize,1),...
                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
+                pCross=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,3),repeats/obj.binSize,1),...
+                reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1));
                 text((i-0.5)./obj.binSize,min(ylim())+0.05*diff(ylim()),p2Str(p),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','b');
                 text((i-0.5)./obj.binSize,min(ylim())+0.15*diff(ylim()),p2Str(pAuto),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','r');
+                text((i-0.5)./obj.binSize,min(ylim())+0.25*diff(ylim()),p2Str(pCross),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','k');
             end
             
 %             xlim([0,plotLength]);
@@ -124,9 +127,9 @@ classdef plotCrossDecoding < handle
             
             obj.plotOdorEdge(delay);
             
-            legend([hRec, hShuffle,hAuto],{'Correct trials test','Shuffled Data','Incorrect trials test'},'box','off','FontSize',10,'FontName','Helvetica');
+            legend([hAuto, hShuffle,hRec],{'Correct trials test','Shuffled Data','Incorrect trials test'},'box','off','FontSize',10,'FontName','Helvetica');
             ylabel('Decoding accuracy','FontName','Helvetica','FontSize',10);
-            xlabel('Time since sample onset (s)','FontName','Helvetica','FontSize',10);
+            xlabel('Time (s)','FontName','Helvetica','FontSize',10);
             if delay==8
                 xlim([0,16.5]/obj.binSize);
             end
@@ -135,13 +138,14 @@ classdef plotCrossDecoding < handle
 %             i=1;
 %             pb=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1),...
 %                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
-            i=(delay+2);
+%             i=(delay+2);
+            i=1;
             pb=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,3),repeats/obj.binSize,1),...
                  reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
             pl=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1),...
                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
 
-            xlim([10,24.5]);
+%             xlim([10,24.5]);
             
 %             
 %             if exist('filename','var')
