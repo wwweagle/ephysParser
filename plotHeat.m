@@ -76,7 +76,7 @@ classdef plotHeat < handle
             samples=squeeze(samples);
             if ~obj.importIdx
                 if strcmp(obj.sortBy,'match')
-                    [~,obj.idx]=sort(mean(samples(:,20/obj.binSize+1:40/obj.binSize),2));
+                    [~,obj.idx]=sort(mean(samples(:,20/obj.binSize+1:30/obj.binSize),2)-mean(samples(:,[20/obj.binSize+1:30/obj.binSize]+size(samples,2)/2),2));
                 else
                     [pfbins,bnbins]=obj.getBins(obj.sortBy,delay);
                     [~,obj.idx]=sort(mean(samples(:,pfbins),2)-mean(samples(:,bnbins),2));

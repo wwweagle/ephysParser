@@ -1,12 +1,13 @@
 function [selStack,p,smp]=sel2wayDNMS(delay,subgrp,displayOff)
 binSize=0.5;
+
 switch delay
-%     case 8
-%         load('sel2wayDNMS8s.mat');
-%         dashes=[2.5,4.5,20.5,22.5,24.5,25.5];
-%     case 4
-%         load('sel2wayDNMS4s.mat');
-%         dashes=[2.5,4.5,12.5,14.5,16.5,17.5];
+    case 8
+        load('sel2wayDNMS8s.mat');
+        dashes=[2.5,4.5,20.5,22.5,24.5,25.5];
+    case 4
+        load('sel2wayDNMS4s.mat');
+        dashes=[2.5,4.5,12.5,14.5,16.5,17.5];
     case 5
         load('sel2wayDNMS5s.mat');
         dashes=[2.5,4.5,14.5,16.5,18.5,19.5];
@@ -31,9 +32,9 @@ for f=1:length(selA)
     for SU=1:SUCount
         for bin=1:(delay+8)/binSize
 %             fprintf('%d, %d, %d, %d\n',f,SU,SUCount,bin);
-            sample(SU+currSU,bin)=ranksum(flatten(selA{f},SU,bin+1/binSize),flatten(selB{f},SU,bin+1/binSize));
-            match(SU+currSU,bin)=ranksum(flatten(selMatchA{f},SU,bin+1/binSize),flatten(selMatchB{f},SU,bin+1/binSize));
-            test(SU+currSU,bin)=ranksum(flatten(selTestA{f},SU,bin+1/binSize),flatten(selTestB{f},SU,bin+1/binSize));
+            sample(SU+currSU,bin)=ranksum(flattenTrans(selA{f},SU,bin+1/binSize),flattenTrans(selB{f},SU,bin+1/binSize));
+            match(SU+currSU,bin)=ranksum(flattenTrans(selMatchA{f},SU,bin+1/binSize),flattenTrans(selMatchB{f},SU,bin+1/binSize));
+            test(SU+currSU,bin)=ranksum(flattenTrans(selTestA{f},SU,bin+1/binSize),flattenTrans(selTestB{f},SU,bin+1/binSize));
         end
     end
     currSU=currSU+SUCount;
@@ -47,8 +48,18 @@ for f=1:length(selMatchAError)
         end
     end
     currSU=currSU+SUCount;
-    
 end
+% currSU=0;
+% for f=1:length(selMatchAError)
+%     SUCount=size(selMatchAError{f},1);
+%     for SU=1:SUCount
+%         for bin=1:(delay+8)/binSize
+%             match2baseNm(SU+currSU,bin)=ranksum(flattenMerge(selMatchAError{f},SU,bin+1/binSize),flattenMerge(selMatchAError{f},SU,11+1/binSize));
+%             match2baseMa(SU+currSU,bin)=ranksum(flattenMerge(selMatchBError{f},SU,bin+1/binSize),flattenMerge(selMatchBError{f},SU,11+1/binSize));
+%         end
+%     end
+%     currSU=currSU+SUCount;
+% end
 
 
 
@@ -63,6 +74,8 @@ else
     tst=(double(test)<0.05)*2;
     mch=(double(match)<0.05)*4;
     mchE=(double(matchError)<0.05)*8;
+%     mch2bN=(double(match2baseNm)<0.05)*16;
+%     mch2bM=(double(match2baseMa)<0.05)*32;
 end
 smp=smp+tst+mch;
 % selStack=[sum(sel==1)',sum(sel==3)',sum(sel==2)']./size(sel,1);
@@ -110,7 +123,7 @@ ylim(yspan);
 legend({'Sample','Test','Sample & Test','Match - NonMatch','Sample & Match','Test & Match','Sample, Test & Match'});
 % legend({'Correct trials','Incorrect trials'});
 % p=chi2(mergeBin(mch),mergeBin(mchE));
-p=chi2base(mch==4);
+p=chi2base(smp==1 | smp ==3 | smp ==5 | smp==7);
 % disp(p);
 
     function out=mergeBin(in)
@@ -122,7 +135,7 @@ p=chi2base(mch==4);
 %         NN=size(in,1);
         binTemplate=[ones(size(in1,1),1);ones(size(in2,1),1)*2];
         for i=1:size(in1,2)
-%             [~,~,out(i-1)]=crosstab(binTemplate,[in(:,1)==1 | in(:,1)==3;in(:,i)==1 | in(:,1)==3]);
+%             [~,~,out(i-1)]=bn(binTemplate,[in(:,1)==1 | in(:,1)==3;in(:,i)==1 | in(:,1)==3]);
             [~,~,out(i)]=crosstab(binTemplate,[in1(:,i)==0;in2(:,i)==0]);
         end
     end
@@ -132,26 +145,62 @@ p=chi2base(mch==4);
    function out=chi2base(in)
        t=mergeBin(in);
         out=nan(1,size(t,2)-1);
-        for i=2:size(t,2)
+        for j=2:size(t,2)
             binTemplate=[ones(size(t,1),1);ones(size(t,1),1)*2];
-            [~,~,out(i)]=crosstab(binTemplate,[t(:,1)==1;t(:,i)==1]);
+            [~,~,out(j)]=crosstab(binTemplate,[t(:,1)==1;t(:,j)==1]);
+            out(j)=out(j).*(size(t,2)-1);
         end
     end
 
     function out=flatten(data,SU,bin)
-        
         if iscell(data)
             out=shiftdim(data{SU}(:,bin));
         else
             out=shiftdim(data(SU,:,bin));
         end
-        
     end
 
-%     function out=combine8_13(d8,d13)
-%         subD13=d13(:,[1:2/binSize,4/binSize+1:13/binSize]);
-%         out=[d8;subD13];
-%     end
+    function out=flattenTrans(data,SU,bin)
+        if iscell(data)
+            if size(data{SU},2)>28 && bin>6 && delay==4
+                out=shiftdim(data{SU}(:,bin+8));
+            else
+                out=shiftdim(data{SU}(:,bin+8));
+            end
+        else
+            if sum(~isnan(data(SU,1,:)))>28 && bin>6 && delay==4
+                out=shiftdim(data(SU,:,bin+8));
+            else
+                out=shiftdim(data(SU,:,bin));
+            end
+            
+        end
+    end
+
+
+
+    function out=flattenMerge(data,SU,bin)
+        if mod(bin,1/binSize)==1
+            if iscell(data)
+                out=sum(shiftdim(data{SU}(:,bin:bin+(1/binSize-1))),2);
+            else
+                out=sum(shiftdim(data(SU,:,bin:bin+(1/binSize-1))),2);
+            end
+        else
+            if iscell(data)
+                out=zeros(size(shiftdim(data{SU}(:,bin))));
+            else
+                out=zeros(size(shiftdim(data(SU,:,bin))));
+            end
+        end
+    end
+    
+
+
+    function out=combine8_13(d8,d13)
+        subD13=d13(:,[1:2/binSize,4/binSize+1:13/binSize]);
+        out=[d8;subD13];
+    end
 
 end
 

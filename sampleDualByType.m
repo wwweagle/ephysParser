@@ -31,12 +31,12 @@ else
 end
 fuIdx=1;
 
-for fidx=1:size(fileList,1)
+for fidx=1%:size(fileList,1)
     futures(fuIdx)=para.parGetSampleFR(fileList{fidx},classify, type,binStart,binSize,binEnd,sampleSize,repeats);
     fuIdx=fuIdx+1;
 end
 h=waitbar(0,'0');
-for fidx=1:length(futures)
+for fidx=1%:length(futures)
     tmp=futures(fidx).get();
     if numel(tmp)>0
         out=[out;tmp];

@@ -34,7 +34,7 @@ end
 %     para=spk2fr.MatPara(2,0.0015);
 % end
 
-para=spk2fr.MatPara(welltrained,0.0015);
+para=spk2fr.MatPara(welltrained,0.0015);% 1, welltrained only, 0, non-well trained only, 2, all
 clear dp;
 
 
@@ -45,11 +45,11 @@ fl=listF();
 if exist('delayLen','var') && ismember(delayLen,[4,5,8])
     switch delayLen
         case 8
-%             fileList=fl.listDNMS8s();
+            fileList=fl.listDNMS8s();
         case 5
             fileList=fl.listDNMSNaive5s();
         otherwise
-%         fileList=fl.listDNMS4s();
+        fileList=fl.listDNMS4s();
     end
 end
 fuIdx=1;

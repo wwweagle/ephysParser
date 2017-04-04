@@ -1,4 +1,4 @@
-set terminal postscript eps font "Helvetica, 20" size 10cm, 6cm
+set terminal postscript eps font "Helvetica, 20" size 5.5cm, 5.5cm
 set output "R:/ZX/APC/RecordingAug16/sel2way.eps"
 #set terminal windows 0 font "Helvetica, 10" size 600,250
 set boxwidth 0.9
@@ -21,5 +21,5 @@ set style histogram rowstacked
 
 
 plot "R:/ZX/APC/RecordingAug16/sel2Way.txt" using 2 title "Sample" linetype -1 linewidth 4 fillstyle solid 0,\
-	"R:/ZX/APC/RecordingAug16/sel2Way.txt" using 3 title "Mixed" linetype -1 linewidth 4 fillstyle pattern 9,\
+	"R:/ZX/APC/RecordingAug16/sel2Way.txt" using 3 title "Mixed" linetype -1 linewidth 4 fillstyle pattern 9 ,\
 	"R:/ZX/APC/RecordingAug16/sel2Way.txt" using 4 title "Distractor" linetype -1 linewidth 4 fillstyle solid 1

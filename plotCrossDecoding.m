@@ -8,7 +8,7 @@ classdef plotCrossDecoding < handle
                 line([xx;xx],repmat(ylim()',1,length(xx)),'LineStyle',':','LineWidth',0.5,'Color','k');
         end
         
-        function [pf1,pf2,bn1,bn2,pf1a,bn1a]=getSampleBins(obj,correctS,errorS,delay,repeat)
+        function [pf1,pf2,bn1,bn2,pf1a,bn1a,shuA,shuB]=getSampleBins(obj,correctS,errorS,shuffleS,delay,repeat)
             chunk=(delay+10)/obj.binSize;
             trial=(delay+9)/obj.binSize;
             
@@ -18,6 +18,8 @@ classdef plotCrossDecoding < handle
             bn1=correctS(:,chunk*2+1/obj.binSize+1:chunk*2+trial,repeat)';
             bn2=errorS(:,chunk*3+1/obj.binSize+1:chunk*3+trial,repeat)';
             bn1a=correctS(:,chunk*3+1/obj.binSize+1:chunk*3+trial,repeat)';
+            shuA=shuffleS(:,chunk+1/obj.binSize+1:chunk+trial,repeat)';
+            shuB=shuffleS(:,chunk*3+1/obj.binSize+1:chunk*3+trial,repeat)';
         end
         
         
@@ -29,15 +31,19 @@ classdef plotCrossDecoding < handle
     
     methods
         
-        function [pb,pl]=plotDecoding(obj,correctS,errorS,delay)
+        function [pb,pl]=plotDecoding(obj,correctS,errorS,shuffleS,delay,bonf)
+            if ~exist('bonf','var')
+                bonf=1;
+            end
 
             roi=(delay+8)/obj.binSize;
             correctS=permute(correctS,[1,3,2]);
             errorS=permute(errorS,[1,3,2]);
+            shuffleS=permute(shuffleS,[1,3,2]);
             repeats=size(correctS,3);
             out=nan(roi,repeats,3);
             h=waitbar(0,'0');
-            [pf1,~,~,~]=obj.getSampleBins(correctS,errorS,delay,1);
+            [pf1,~,~,~]=obj.getSampleBins(correctS,errorS,shuffleS,delay,1);
             bins=size(pf1,1);
             for bin=1:bins
                 waitbar(bin/bins,h,sprintf('%d/%d',bin,bins));
@@ -48,7 +54,8 @@ classdef plotCrossDecoding < handle
                 %                 parfor repeat=1:repeats
                 for repeat=1:repeats
                     
-                    [pf1,pf2,bn1,bn2,pf1a,bn1a]=obj.getSampleBins(correctS,errorS,delay,repeat);
+%                     [pf1,pf2,bn1,bn2,pf1a,bn1a]=obj.getSampleBins(correctS,errorS,delay,repeat);
+                    [pf1,pf2,bn1,bn2,pf1a,bn1a,shuA,shuB]=obj.getSampleBins(correctS,errorS,shuffleS,delay,repeat);
                     
                     if rand<0.5 % Use PF Test
                         corrPF=corrcoef(pf2(bin,:),pf1(bin,:));
@@ -60,6 +67,12 @@ classdef plotCrossDecoding < handle
                         cross_decoded(repeat)=corrPF(1,2)>corrBN(1,2);
                         auto_decoded(repeat)=autoCorrPF(1,2)>autoCorrBN(1,2);
                         
+                        shufPF=corrcoef(shuA(bin,:),pf1(bin,:));
+                        shufBN=corrcoef(shuA(bin,:),bn1(bin,:));
+                        shuffled(repeat)=shufPF(1,2)>shufBN(1,2);
+                        
+                        
+                        
                     else % Use BN Test
                         corrPF=corrcoef(bn2(bin,:),pf1(bin,:));
                         corrBN=corrcoef(bn2(bin,:),bn1(bin,:));
@@ -68,9 +81,16 @@ classdef plotCrossDecoding < handle
                         autoCorrPF=corrcoef(bn1a(bin,:),pf1(bin,:));
                         autoCorrBN=corrcoef(bn1a(bin,:),bn1(bin,:));
                         auto_decoded(repeat)=autoCorrBN(1,2)>autoCorrPF(1,2);
+                        
+                        
+                        shufPF=corrcoef(shuB(bin,:),pf1(bin,:));
+                        shufBN=corrcoef(shuB(bin,:),bn1(bin,:));
+                        shuffled(repeat)=shufBN(1,2)>shufPF(1,2);
                     end
-                    
-                    shuffled(repeat)=randsample([cross_decoded(repeat),~cross_decoded(repeat)],1);
+                      
+
+                   
+
                 end
                 out(bin,:,:)=[cross_decoded,shuffled,auto_decoded];
             end
@@ -117,9 +137,9 @@ classdef plotCrossDecoding < handle
                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
                 pCross=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,3),repeats/obj.binSize,1),...
                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1));
-                text((i-0.5)./obj.binSize,min(ylim())+0.05*diff(ylim()),p2Str(p),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','b');
-                text((i-0.5)./obj.binSize,min(ylim())+0.15*diff(ylim()),p2Str(pAuto),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','r');
-                text((i-0.5)./obj.binSize,min(ylim())+0.25*diff(ylim()),p2Str(pCross),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','k');
+                text((i-0.5)./obj.binSize,min(ylim())+0.05*diff(ylim()),p2Str(p*bonf),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','b');
+                text((i-0.5)./obj.binSize,min(ylim())+0.15*diff(ylim()),p2Str(pAuto*bonf),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','r');
+                text((i-0.5)./obj.binSize,min(ylim())+0.25*diff(ylim()),p2Str(pCross*bonf),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','k');
             end
             
 %             xlim([0,plotLength]);
@@ -139,11 +159,20 @@ classdef plotCrossDecoding < handle
 %             pb=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1),...
 %                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
 %             i=(delay+2);
-            i=1;
-            pb=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,3),repeats/obj.binSize,1),...
+            i=6;
+            p32=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,3),repeats/obj.binSize,1),...
                  reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
-            pl=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1),...
+            p21=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1),...
                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
+            p31=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,3),repeats/obj.binSize,1),...
+                reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1));
+            
+%             i=7;
+            
+            pb=min([p21,p32].*bonf);
+            pl=p31.*bonf;
+%             pl=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1),...
+%                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1)).*bonf;
 
 %             xlim([10,24.5]);
             

@@ -3,9 +3,9 @@
 
 % s=sampleByType(osf(:,:),'OpSuppress','Average2HzWhole',-2,0.1,11,[100,0;100,0],1,2);
 function s=plotOpSupp(ramp)
-s=SampleOpSupp('OpSuppress','Average2HzWhole',-2,0.2,11,[100,0;100,0],1,2,ramp);
+s=SampleOpSupp('OpSuppressZ','Average2HzWhole',-2,0.2,11,[100,0;100,0],1,2,ramp);
 % figure();
-hh=permute(s,[1,3,2]);
+hh=squeeze(s);
 hh(:,1)=mean(hh(:,16:25),2);
 hh=sortrows(hh,1);
 figure('Color','w','Position',[100,100,300,300]);

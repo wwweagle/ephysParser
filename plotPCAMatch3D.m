@@ -3,7 +3,7 @@ function plotPCAMatch3D()%(data,endpoint,pcs,isDNMS,azel)
 endpoint=7;
 pcs=1:3;
 % isDNMS=true;
-azel=[45,45];
+azel=[-100,5];
 % lf=listF();
 % trajectorByMatch4s=sampleByType(lf.listDNMS4s,'Match','Average2Hz',-2,0.2,12,[20,20;20,20],100,1);
 % trajectorByMatch8s=sampleByType(lf.listDNMS8s,'Match','Average2Hz',-2,0.2,16,[20,20;20,20],100,1);
@@ -162,11 +162,11 @@ end
 
 % 
 % %
-view([-100,5]);
-xlabel('PC1 (a.u.)');
-xlim([-20,105]);
-ylabel('PC2 (a.u.)');
-ylim([-55,90]);
-zlim([-27,35])
-grid on;
-set(gcf,'Position',[100,100,375,240]);
+% view([-100,5]);
+% xlabel('PC1 (a.u.)');
+% xlim([-20,105]);
+% ylabel('PC2 (a.u.)');
+% ylim([-55,90]);
+% zlim([-27,35])
+% grid on;
+% set(gcf,'Position',[100,100,375,240]);

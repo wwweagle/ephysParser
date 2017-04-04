@@ -68,7 +68,7 @@ classdef plotCurve < handle
     methods
         
         
-        function [pp, dist,cis]=plotTrajectory(obj,samples,filename,pcs)
+        function [pp, dist,cis]=plotTrajectory(obj,samples,filename,pcs,bonf)
             obj.half=false;
             %             path(path,'I:\behavior\reports\z');
             delay=size(samples,3)/4*obj.binSize-5;
@@ -130,6 +130,10 @@ classdef plotCurve < handle
 
             set(gca,'XTick',0:1/obj.binSize:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             tp=nan(delay+3,1);
+            if ~exist('bonf','var')
+                bonf=1;
+            end
+            
             for i=1:delay+3
                 p=anova1([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1), ...
@@ -137,7 +141,7 @@ classdef plotCurve < handle
 %                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
 %                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
 %                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
-                text((i-0.5)/obj.binSize,70,p2Str(p),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
+                text((i-0.5)/obj.binSize,70,p2Str(p*bonf),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
                 tp(i)=p;
             end
             
@@ -149,17 +153,13 @@ classdef plotCurve < handle
 %             text(-0.12*plotLength,mean(yspan),'distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             ylabel('Normalized distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             %             text(-3,yspan(1)+(yspan(2)-yspan(1))*0.5,'(z-score)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+
+                
             text(3/obj.binSize,yspan(1)+(yspan(2)-yspan(1))*0.95,['n = ',num2str(size(pf1,2))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
             
             
             pp=min([tp(1),tp(end),tp(end-1),tp(end-2)]);
-            %             pp=tp(end);
-            
-            
-            
-            
-            
-            
+           
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
@@ -192,21 +192,25 @@ classdef plotCurve < handle
 %             hpp=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,1)))./normalRef(1),'-b','LineWidth',1);
             hpbh=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,2)))./normalRef(2),':r','LineWidth',1);
 %             hbb=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,3)))./normalRef(3),'-k','LineWidth',1);
+
+            for i=1:delay+3
+                p=anova1([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1), ...
+                    reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1), ...
+                    reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)],[],'off');
+%                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
+%                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
+%                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
+                text((i-0.5)/obj.binSize,60,p2Str(p*bonf),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
+                tp(i)=p;
+            end
+
+
+
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+
             
             if exist('filename','var')
                 if numel(regexpi(filename,'byodor'))>0

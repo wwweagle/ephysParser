@@ -38,7 +38,7 @@ for fidx=1:size(fileList,1)
 end
 h=waitbar(0,'0');
 for fidx=1:length(futures)
-    tmp=futures(fidx).get();
+    tmp=futures(fidx).get().getFRData();
     if numel(tmp)>0
         out=[out;tmp];
     end

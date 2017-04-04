@@ -1,6 +1,6 @@
-set terminal postscript eps font "Helvetica, 20" size 5cm, 3.6cm
-set output "R:/ZX/APC/RecordingAug16/contributeSustain.eps"
-# set terminal windows 0 font "Helvetica, 10" size 250,600
+# set terminal postscript eps font "Helvetica, 20" size 5cm, 3.6cm
+# set output "R:/ZX/APC/RecordingAug16/contributeSustain.eps"
+set terminal windows 0 font "Helvetica, 10" size 250,600
 set boxwidth 0.9
 set xrange [0.5:2.5]
 set yrange [0.48:0.9]

@@ -136,6 +136,7 @@ classdef listF < handle
             all=[repmat(root,size(all,1),1),all];
             ff=all;
             
+
             root='H:\ZX\APC\DNMS\Naive 5s_2016\';
 
             all=ls([root,'*.mat']);
