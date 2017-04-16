@@ -67,7 +67,7 @@ for i=1:size(keyIdx,1)
                 for m=1:licks
                     if ~isempty(lickTrigAvg{j,3}{l,1})
                         concated=[concated,lickTrigAvg{j,3}{l,1}{m,1}];
-                        1`bf=[bf;sum(lickTrigAvg{j,3}{l,1}{m,1}>=(-0.25+windowCenter) & lickTrigAvg{j,3}{l,1}{m,1}<windowCenter)];
+                        bf=[bf;sum(lickTrigAvg{j,3}{l,1}{m,1}>=(-0.25+windowCenter) & lickTrigAvg{j,3}{l,1}{m,1}<windowCenter)];
                         aft=[aft;sum(lickTrigAvg{j,3}{l,1}{m,1}>=windowCenter & lickTrigAvg{j,3}{l,1}{m,1}<(0.25+windowCenter))];
                         base=[base;length(lickTrigAvg{j,3}{l,1}{m,1})/2];%sum(lickTrigAvg{j,3}{l,1}{m,1}<0)];
                     else
@@ -117,13 +117,24 @@ shuf=fr(:,randperm(size(fr,2)));
 hold on
 % sem=std(fr)./size(fr,1);
 ci=bootci(100,@(x) mean(x),fr);
+% rebootn=10000;
+% frshuf=nan(size(fr,1),size(fr,2),rebootn);`
+% for i=1:size(fr,1)
+%     frs(i,:,:)=bootstrp(rebootn,@(x) x(randperm(length(x))),fr(i,:))';
+% end
+
+
+
 ciShuf=bootci(100,@(x) mean(x),shuf);
-bootShuf=bootstrp(10000,@(x) mean(x),fr);
+bootShuf=bootstrp(10000,@(x) mean(x(:,randperm(size(x,2)))),fr);
+
+
 bootP=nan(1,10);
 for i=1:10
     sM=mean(mean(bootShuf(i*10-9:i*10)));
     dM=abs(mean(mean(fr(:,i*10-9:i*10)))-sM);
     bootP(i)=sum(abs(mean(bootShuf(:,i*10-9:i*10),2)-sM)>=dM)./10000;
+    fprintf('lick triggered average\tfiring rate %.1fs\tbootstrapping\t\t%d\tnumber of neurons\t\t\t\tp = %.2e\t\tresult could be explained by chance in %d out of 10000 resample result could be explained by chance\n',(i-6)*0.2,size(fr,1),bootP(i),bootP(i)*10000);
 end
 disp('BootP');
 disp(bootP);

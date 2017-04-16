@@ -28,6 +28,7 @@ assignin('base','idxCorr',idxCorr);
 assignin('base','idxEror',idxEror);
 text(0.8,0.8,['n = ',num2str(length(idx))],'FontName','Helvetica','FontSize',10);
 [r,p]=corrcoef(idxCorr(idx),idxEror(idx));
+fprintf('OUT r=%.3f, p=%.2e\n',r(1,2),p(1,2));
 text(0.8,0.86,['p = ',sprintf('%.3f',p(1,2))],'FontName','Helvetica','FontSize',10);
 text(0.8,0.92,['r = ',sprintf('%.3f',r(1,2))],'FontName','Helvetica','FontSize',10);
 r=polyfit(idxCorr(idx),idxEror(idx),1)

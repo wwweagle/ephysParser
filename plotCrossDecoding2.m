@@ -1,4 +1,4 @@
-classdef plotCrossDecoding < handle
+classdef plotCrossDecoding2 < handle
     properties
         binSize=0.5;
         alwaysLeft=false; % PF, Non-match
@@ -182,7 +182,7 @@ classdef plotCrossDecoding < handle
 %             pb=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1),...
 %                 reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
 %             i=(delay+2);
-            i=7;
+            i=6;
             p32=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,3),repeats/obj.binSize,1),...
                  reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
             p21=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1),...
@@ -192,8 +192,8 @@ classdef plotCrossDecoding < handle
             
 %             i=7;
             
-            pb=max([p32,p21,p31]).*bonf;
-            pl=p31.*bonf;
+            pb=min([p32,p21,p31]).*bonf;
+            pl=pb
 %             disp([pb,pl]);
 
 

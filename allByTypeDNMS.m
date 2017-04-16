@@ -1,4 +1,4 @@
-function [out,sequence] = allByTypeDNMS(type, classify,binStart,binSize,binEnd,isS1,delayLen,welltrained) %type='odor' or 'correct' ; SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
+function [out,sequence] = allByTypeDNMS(type, classify,binStart,binSize,binEnd,isS1,delayLen,welltrained) %SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 

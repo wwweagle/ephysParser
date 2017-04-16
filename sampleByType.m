@@ -15,7 +15,7 @@ else
 end
 
 out=[];
-sequence=[];
+sequence=cell(0,0);
 
 % rf=recordingFiles;
 
@@ -46,7 +46,7 @@ for fidx=1:length(futures)
         if numel(tmp)>0
             %         fprintf('%d, %d\n',fidx, size(tmp,1));
             out=[out;tmp];
-            sequence=[sequence;combo.getKeyIdx()];
+            sequence=[sequence;{strtrim(fileList(fidx,:)),combo.getKeyIdx()}];
         end
     end
     %     ts=cell(s2f.getFiringTimesByOdor(odor));

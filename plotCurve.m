@@ -135,14 +135,15 @@ classdef plotCurve < handle
             end
             
             for i=1:delay+3
-                p=anova1([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1), ...
+                [p,tbl,~]=anova1([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)],[],'off');
 %                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
 %                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
 %                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
                 text((i-0.5)/obj.binSize,70,p2Str(p*bonf),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
-                tp(i)=p;
+                fprintf('4s\tAll neurons %ds\tone-way ANOVA, Bonferroni correction adjusted\t\t%d\tnumber of neurons\t\tshadow is 95%% confidence interval from bootstrapping\t\tp = %.2e\t\tF(%d, %d) = %.3f\n',i-2,size(samples,1),p*bonf,tbl{2,3},tbl{3,3},tbl{2,5});
+                tp(i)=p*bonf;
             end
             
             xlim([0,plotLength]);
@@ -158,7 +159,7 @@ classdef plotCurve < handle
             text(3/obj.binSize,yspan(1)+(yspan(2)-yspan(1))*0.95,['n = ',num2str(size(pf1,2))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
             
             
-            pp=min([tp(1),tp(end),tp(end-1),tp(end-2)]);
+            pp=tp(6)*bonf;
            
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -194,13 +195,14 @@ classdef plotCurve < handle
 %             hbb=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,3)))./normalRef(3),'-k','LineWidth',1);
 
             for i=1:delay+3
-                p=anova1([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1), ...
+                [p,tbl,~]=anova1([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)],[],'off');
 %                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
 %                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
 %                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
                 text((i-0.5)/obj.binSize,60,p2Str(p*bonf),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
+                fprintf('4s half\tAll neurons %ds\tone-way ANOVA, Bonferroni correction adjusted\t\t%d\tnumber of neurons\t\tshadow is 95%% confidence interval from bootstrapping\t\tp = %.2e\t\tF(%d, %d) = %.3f\n',i-2,round(size(samples,1)/2),p*bonf,tbl{2,3},tbl{3,3},tbl{2,5});
                 tp(i)=p;
             end
 

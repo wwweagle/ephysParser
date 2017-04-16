@@ -20,6 +20,6 @@ set style histogram rowstacked
 #set ylabel "Decoding accuracy" font "Helvetica, 24"
 
 
-plot "R:/ZX/APC/RecordingAug16/sel2Way.txt" using 2 title "Sample" linetype -1 linewidth 4 fillstyle solid 0,\
-	"R:/ZX/APC/RecordingAug16/sel2Way.txt" using 3 title "Mixed" linetype -1 linewidth 4 fillstyle pattern 9 ,\
-	"R:/ZX/APC/RecordingAug16/sel2Way.txt" using 4 title "Distractor" linetype -1 linewidth 4 fillstyle solid 1
+plot "R:/ZX/APC/RecordingAug16/sel2Way.txt" using 2 title "Sample" linetype -1 linewidth 4 fillstyle solid 1,\
+	"R:/ZX/APC/RecordingAug16/sel2Way.txt" using 3 title "Mixed" linetype -1 linewidth 4 fillstyle pattern 9 #,\
+	#"R:/ZX/APC/RecordingAug16/sel2Way.txt" using 4 title "Distractor" linetype -1 linewidth 4 fillstyle solid 1

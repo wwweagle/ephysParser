@@ -23,7 +23,7 @@ classdef plotHeat < handle
                 xx=[2,2.5,3,3.5]*10/obj.binSize+0.5;
             end
             for curX=1:length(xx)
-                line([xx(curX),xx(curX)],yspan,'LineStyle','-','LineWidth',0.5,'Color','w');
+                line([xx(curX),xx(curX)],yspan,'LineStyle','-','LineWidth',1,'Color','w');
             end
  
         end
@@ -114,7 +114,7 @@ classdef plotHeat < handle
 %             set(gca,'YTick',[50,100,110,250-119,300-119],'YTickLabel',[50,100,0,250,300]);
             
             [xtick,xtickLabel]=obj.getXTick(delay);
-            set(gca,'XTick',xtick,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
+            set(gca,'XTick',xtick+0.5,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             
             
             obj.plotOdorEdge(delay);
@@ -152,7 +152,7 @@ classdef plotHeat < handle
                 imagesc(flip(samples(:,bnbins)),[-3,3]);
             end
             
-            set(gca,'YTick',[],'XTick',xtick,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
+            set(gca,'YTick',[],'XTick',xtick+0.5,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             obj.plotOdorEdge(delay);
             colormap('jet');
             
