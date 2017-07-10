@@ -66,7 +66,7 @@ for fidx=1:length(futures)
     tmp=combo.getFRData();
         if numel(tmp)>0
             out{seqIdx,1}=tmp;
-            sequence{seqIdx,1}=fileList(fidx,:);
+            sequence{seqIdx,1}=strtrim(fileList(fidx,:));
             sequence{seqIdx,2}=combo.getKeyIdx();
             seqIdx=seqIdx+1;
         end

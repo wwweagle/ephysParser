@@ -1,5 +1,5 @@
 function plotShowCaseWJ
-byLick=true;
+byLick=false;
 binSize=0.25;
 javaaddpath('R:\ZX\java\spk2fr\build\classes');
 javaaddpath('R:\ZX\java\spk2fr\lib\jmatio.jar');
@@ -8,7 +8,7 @@ javaaddpath('R:\ZX\java\DualEvtParser\build\classes');
 s2f=spk2fr.Spk2fr;
 s2f.setWellTrainOnly(1);
 s2f.setRefracRatio(0.0015);
-s2f.setLeastFR('all');
+s2f.setLeastFR('Average2Hz');
 % fl=listF();
 % fileList=fl.listDNMS4s();
 % fileList=fl.listDNMS8s();
@@ -22,7 +22,7 @@ fileList=cell2mat(id(:,1));
 % 03008
 % 00101
 
-for fi=1 %:size(fileList)
+for fi=1:size(fileList)
     
     fprintf('fid: %d\n',fi);
     disp(fileList(fi,:));
@@ -31,14 +31,12 @@ for fi=1 %:size(fileList)
     if(numel(spk)>1000)
     ts1=s2f.getTS(ft.TrialInfo,spk,'wjdnms',byLick);
       if ~isempty(ts1)
-          for tet=1 %:size(ts1,1)
+          for tet=1:size(ts1,1)
             plotOne(ts1{tet},fi*100+tet);
           end
       end
       disp(s2f.getKeyIdx());
     end
-    
-%     pause;
 end
 
     function plotOne(ts,fidx)
@@ -74,13 +72,13 @@ end
 %             bn=[bn;ts{2}{i}];
         end
         
-%         xlim([-1,6]);
+        xlim([-1,15]);
 
         set(gca,'XTick',[],'YTick',[0,17,24,40],'YTickLabel',[0,20,0,20]);
         
-        plot([0,1,5,6,7,7.5;0,1,5,6,7,7.5],repmat(ylim()',1,6),':k');
+        plot([0,1,5,5.5,6,6.5,14,15;0,1,5,5.5,6,6.5,14,15],repmat(ylim()',1,8),':k');
 %         plot([0,1,9,10;0,1,9,10],repmat(ylim()',1,4),':k');
-        xlim([4,10]);
+%         xlim([4,10]);
         ylim([0,41]);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%
         subplot('Position',[0.1,0.1,0.85,0.35]);
@@ -113,10 +111,11 @@ end
         plot([0,1,5,6,7,7.5;0,1,5,6,7,7.5],repmat(ylim()',1,6),':k');
 %         plot([0,1,9,10;0,1,9,10],repmat(ylim()',1,4),':k');
         set(gca,'XTick',[0,5,10]);
-        xlim([4,10]);
-%         xlim([-1,10]);
+%         xlim([4,10]);
+        xlim([-1,10]);
         ylim([min(ylim()),max([mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1)),mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1))])]);
         
+        if byLick
         Lick=evalin('base','Lick');
         li=cell(0);
         nl=cell(0);
@@ -144,7 +143,7 @@ end
         plot(-1+binSize/2:binSize:10,mean(lim),'m:','LineWidth',1);
         plot(-1+binSize/2:binSize:10,mean(nlm),'c:','LineWidth',1);
         ylim([-2,7]);
-        
+        end
         
         
         

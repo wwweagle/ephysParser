@@ -1,5 +1,5 @@
 function barData=plotCD (sGoCD,sNogoCD,sNoneCD,late)
-path(path,'R:\ZX\APC\Script1608');
+% path(path,'R:\ZX\APC\Script1608');
 binSize=1;
 delay=size(sGoCD,3)/6*binSize-5;
 % sGoCD=sampleDualByType('distrGo','Average2HzWhole',-2,0.2,11,[1,0;1,0],96,1);

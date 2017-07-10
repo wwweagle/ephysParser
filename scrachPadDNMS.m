@@ -13,8 +13,8 @@ pc.binSize=0.5;
 pc.plotTrajectory(trajectoryByOdor8s,'trajectoryByOdor8s',1:20,22);
 pc.plotTrajectory(trajectoryByOdor4s,'trajectoryByOdor4s',1:20,14);
 
-decodingByOdor4s=sampleByType(lf.listDNMS4s,'odor','Average2Hz',-2,0.5,7,[30,1;30,1],500,1);
-decodingByOdor8s=sampleByType(lf.listDNMS8s,'odor','Average2Hz',-2,0.5,11,[30,1;30,1],500,1);
+decodingByOdor4s=sampleByType(lf.listDNMS4s,'sample','Average2Hz',-2,0.5,7,[30,1;30,1],500,1);
+decodingByOdor8s=sampleByType(lf.listDNMS8s,'sample','Average2Hz',-2,0.5,11,[30,1;30,1],500,1);
 pc.plotDecoding(decodingByOdor4s,'decodingByOdor4s')
 pc.plotDecoding(decodingByOdor8s,'decodingByOdor8s')
 
