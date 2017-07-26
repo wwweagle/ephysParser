@@ -1,6 +1,7 @@
-function plotShowCaseWJ
+function plotShowCaseWJ(fidx,uidx)
 byLick=false;
 binSize=0.25;
+delayLen=8;
 javaaddpath('R:\ZX\java\spk2fr\build\classes');
 javaaddpath('R:\ZX\java\spk2fr\lib\jmatio.jar');
 javaaddpath('R:\ZX\java\spk2fr\lib\commons-math3-3.5.jar');
@@ -12,156 +13,168 @@ s2f.setLeastFR('Average2Hz');
 % fl=listF();
 % fileList=fl.listDNMS4s();
 % fileList=fl.listDNMS8s();
-[~,id]=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,true,4,true);
+[~,id]=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,true,delayLen,true);
 % id=evalin('base','idselA');
-fileList=cell2mat(id(:,1));
+fileList=id(:,1);
 
+
+rLim=delayLen+5;% 9 for 4s delay, 13 for 8s delay
 
 % 91_3 Dual-8s-R109-1-32EVT1234-R110-65-96-EVT18-21-0930_1GRP.mat
 % 07002
 % 03008
 % 00101
 
-for fi=1:size(fileList)
+for fi=fidx%1:size(fileList)
     
     fprintf('fid: %d\n',fi);
-    disp(fileList(fi,:));
-    ft=load(fileList(fi,:));
+    disp(fileList{fi});
+    ft=load(fileList{fi});
     spk=ft.Spk;
     if(numel(spk)>1000)
-    ts1=s2f.getTS(ft.TrialInfo,spk,'wjdnms',byLick);
-      if ~isempty(ts1)
-          for tet=1:size(ts1,1)
-            plotOne(ts1{tet},fi*100+tet);
-          end
-      end
-      disp(s2f.getKeyIdx());
+        info=ft.TrialInfo;
+        ts1=s2f.getTS(info(1:end/2,:),spk,'wjdnms',byLick,true);
+        ts2=s2f.getTS(info(1:end/2,:),spk,'wjdnms',byLick,false);
+        ts3=s2f.getTS(info(end/2:end,:),spk,'wjdnms',byLick,true);
+        ts4=s2f.getTS(info(end/2:end,:),spk,'wjdnms',byLick,false);
+%         ts1=s2f.getTS(inf,spk,'wjdnms',byLick,true);
+%         ts2=s2f.getTS(inf,spk,'wjdnms',byLick,false);
+        if (~isempty(ts1)) && (~isempty(ts2)) && (~isempty(ts3)) && (~isempty(ts4))
+            for tet=uidx%1:size(ts1,1)
+                plotOne(ts1{tet},fi*1000+tet*10+1);
+                plotOne(ts2{tet},fi*1000+tet*10+2);
+                plotOne(ts3{tet},fi*1000+tet*10+3);
+                plotOne(ts4{tet},fi*1000+tet*10+4);
+                
+            end
+        end
+        disp(s2f.getKeyIdx());
     end
 end
 
-    function plotOne(ts,fidx)
-%         pf=nan(0,0);
-%         bn=nan(0,0);
-        figure('Color','w','Position',[100,100,280,280]);
 
+
+
+
+
+
+
+
+    function plotOne(ts,fidx)
+        %         pf=nan(0,0);
+        %         bn=nan(0,0);
+        figure('Color','w','Position',[100,100,280,280]);
+        
         subplot('Position',[0.1,0.5,0.85,0.40]);
         hold on;
-        if length(ts{1})>20
+        
+        if size(ts{1},1)==0
+        elseif size(ts{1},1)==1
+            plot([ts{1};ts{1}],repmat([21;21.8]+1,1,length(ts{1})),'-r');
+        elseif size(ts{1},1)>20
             pos=round((length(ts{1})-20)/2);
-            posRange1=pos:pos+19;
+            posRange=pos:pos+19;
+            cellfun(@(x) plot([x{1}';x{1}'],repmat([x{2};x{2}+0.8]+1,1,length(x{1})),'-r'),cellfun(@(x,y) {x,y},ts{1}(posRange),num2cell(1:length(posRange),1)','UniformOutput',false));
         else
-            pos=1;
-            posRange1=1:length(ts{1});
-        end
-        for i=posRange1
-            plot([ts{1}{i}';ts{1}{i}'],repmat([i-pos;i-pos+1]+1,1,length(ts{1}{i})),'-r','LineWidth',1);
-%             pf=[pf;ts{1}{i}];
+            posRange=1:size(ts{1},1);
+            cellfun(@(x) plot([x{1}';x{1}'],repmat([x{2};x{2}+0.8]+1,1,length(x{1})),'-r'),cellfun(@(x,y) {x,y},ts{1}(posRange),num2cell(1:length(posRange),1)','UniformOutput',false));
         end
         
-%         currH=length(ts{1});
-        if length(ts{2})>20
+        
+
+        if size(ts{2},1)==0
+        elseif size(ts{2},1)==1
+            plot([ts{2};ts{2}],repmat([21;21.8]+1,1,length(ts{2})),'-b');
+        elseif size(ts{2},1)>20
             pos=round((length(ts{2})-20)/2);
-            posRange2=pos:pos+19;
+            posRange=pos:pos+19;
+            cellfun(@(x) plot([x{1}';x{1}'],repmat([x{2};x{2}+0.8]+1,1,length(x{1})),'-b'),cellfun(@(x,y) {x,y},ts{2}(posRange),num2cell([1:length(posRange)]+20,1)','UniformOutput',false));
         else
-            pos=1;
-            posRange2=1:length(ts{2});
-        end
-
-        for i=posRange2
-            plot([ts{2}{i}';ts{2}{i}'],repmat([i+20-pos;i+20-pos+1]+1,1,length(ts{2}{i})),'-b','LineWidth',1);
-%             bn=[bn;ts{2}{i}];
-        end
+            posRange=1:size(ts{2},1);
+            cellfun(@(x) plot([x{1}';x{1}'],repmat([x{2};x{2}+0.8]+1,1,length(x{1})),'-b'),cellfun(@(x,y) {x,y},ts{2}(posRange),num2cell([1:length(posRange)]+20,1)','UniformOutput',false));
+        end    
         
-        xlim([-1,15]);
-
-        set(gca,'XTick',[],'YTick',[0,17,24,40],'YTickLabel',[0,20,0,20]);
         
-        plot([0,1,5,5.5,6,6.5,14,15;0,1,5,5.5,6,6.5,14,15],repmat(ylim()',1,8),':k');
-%         plot([0,1,9,10;0,1,9,10],repmat(ylim()',1,4),':k');
-%         xlim([4,10]);
+        xlim([-1,rLim]);
         ylim([0,41]);
+        set(gca,'XTick',[],'YTick',[0,18,23,40],'YTickLabel',[0,20,0,20]);
+        plotSegs(rLim);
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%
         subplot('Position',[0.1,0.1,0.85,0.35]);
         hold on;
-        pfHist=nan(length(posRange1),11/binSize);
-        idx=1;
-        for t=posRange1
-            pfHist(idx,:)=histcounts(ts{1}{t},-1:binSize:10)./binSize;
-            idx=idx+1;
+        if size(ts{1},1)==0
+        elseif size(ts{1},1)==1
+            pfHist=histcounts(ts{1},-4:binSize:rLim)./binSize;
+        else
+            pfHist=cell2mat(cellfun(@(x) histcounts(x,-4:binSize:rLim)./binSize,ts{1},'UniformOutput',false));
+            fill([-4+binSize/2:binSize:rLim,rLim-binSize/2:-binSize:-4],[(mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1))),(fliplr(mean(pfHist)-std(pfHist)./sqrt(size(pfHist,1))))],[1,0.8,0.8],'EdgeColor','none');
         end
-        bnHist=nan(length(posRange2),11/binSize);
-        idx=1;
-        for t=posRange2
-            bnHist(idx,:)=histcounts(ts{2}{t},-1:binSize:10)./binSize;
-            idx=idx+1;
+        if size(ts{2},1)==0
+        elseif size(ts{2},1)==1
+            bnHist=histcounts(ts{2},-4:binSize:rLim)./binSize;
+        else
+            bnHist=cell2mat(cellfun(@(x) histcounts(x,-4:binSize:rLim)./binSize,ts{2},'UniformOutput',false));
+            fill([-4+binSize/2:binSize:rLim,rLim-binSize/2:-binSize:-4],[(mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1))),(fliplr(mean(bnHist)-std(bnHist)./sqrt(size(bnHist,1))))],[0.8,0.8,1],'EdgeColor','none');
         end
         
-%         fill([-1+binSize/2:binSize:10,10-binSize/2:-binSize:-1],[smooth(mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1)));smooth(fliplr(mean(pfHist)-std(pfHist)./sqrt(size(pfHist,1))))],[1,0.8,0.8],'EdgeColor','none');
-%         fill([-1+binSize/2:binSize:10,10-binSize/2:-binSize:-1],[smooth(mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1)));smooth(fliplr(mean(bnHist)-std(bnHist)./sqrt(size(bnHist,1))))],[0.8,0.8,1],'EdgeColor','none');
-% 
-%         plot(-1+binSize/2:binSize:10,smooth(mean(pfHist)),'-r');
-%         plot(-1+binSize/2:binSize:10,smooth(mean(bnHist)),'-b');
-
-        fill([-1+binSize/2:binSize:10,10-binSize/2:-binSize:-1],[(mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1))),(fliplr(mean(pfHist)-std(pfHist)./sqrt(size(pfHist,1))))],[1,0.8,0.8],'EdgeColor','none');
-        fill([-1+binSize/2:binSize:10,10-binSize/2:-binSize:-1],[(mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1))),(fliplr(mean(bnHist)-std(bnHist)./sqrt(size(bnHist,1))))],[0.8,0.8,1],'EdgeColor','none');
-
-        plot(-1+binSize/2:binSize:10,(mean(pfHist)),'-r','LineWidth',1);
-        plot(-1+binSize/2:binSize:10,(mean(bnHist)),'-b','LineWidth',1);
-
-        plot([0,1,5,6,7,7.5;0,1,5,6,7,7.5],repmat(ylim()',1,6),':k');
-%         plot([0,1,9,10;0,1,9,10],repmat(ylim()',1,4),':k');
-        set(gca,'XTick',[0,5,10]);
-%         xlim([4,10]);
-        xlim([-1,10]);
+        
+        plot(-4+binSize/2:binSize:rLim,(mean(pfHist,1))','-r');
+        plot(-4+binSize/2:binSize:rLim,(mean(bnHist,1))','-b');
+        
+        xlim([-1,rLim]);
         ylim([min(ylim()),max([mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1)),mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1))])]);
+        plotSegs(rLim);
+        
+        
+        
+        
+        
+        
+        %%%%%%%%%%%%%%%%%%
         
         if byLick
-        Lick=evalin('base','Lick');
-        li=cell(0);
-        nl=cell(0);
-        idx=1;
-        for i=posRange1
-            li{idx}=Lick(find(Lick>(ts{3}(i)-1) & Lick<(ts{3}(i)+13)))-ts{3}(i)-1;
-            idx=idx+1;
+            Lick=evalin('base','Lick');
+            li=cell(0);
+            nl=cell(0);
+            idx=1;
+            for i=posRange1
+                li{idx}=Lick(find(Lick>(ts{3}(i)-1) & Lick<(ts{3}(i)+13)))-ts{3}(i)-1;
+                idx=idx+1;
+            end
+            idx=1;
+            for i=posRange2
+                nl{idx}=Lick(find(Lick>(ts{4}(i)-1) & Lick<(ts{4}(i)+13)))-ts{4}(i)-1;
+                idx=idx+1;
+            end
+            lim=nan(20,44);
+            nlm=nan(20,44);
+            for i=1:20
+                lim(i,:)=histcounts(li{i},-1:binSize:10)./binSize;
+                nlm(i,:)=histcounts(nl{i},-1:binSize:10)./binSize;
+            end
+            yyaxis right
+            
+            fill([-1+binSize/2:binSize:10,10-binSize/2:-binSize:-1],[(mean(lim)+std(lim)./sqrt(size(lim,1))),(fliplr(mean(lim)-std(lim)./sqrt(size(lim,1))))],'m','EdgeColor','none');
+            fill([-1+binSize/2:binSize:10,10-binSize/2:-binSize:-1],[(mean(nlm)+std(nlm)./sqrt(size(nlm,1))),(fliplr(mean(nlm)-std(nlm)./sqrt(size(nlm,1))))],'c','EdgeColor','none');
+            
+            plot(-1+binSize/2:binSize:10,mean(lim),'m:','LineWidth',1);
+            plot(-1+binSize/2:binSize:10,mean(nlm),'c:','LineWidth',1);
+            ylim([-2,7]);
         end
-        idx=1;
-        for i=posRange2
-            nl{idx}=Lick(find(Lick>(ts{4}(i)-1) & Lick<(ts{4}(i)+13)))-ts{4}(i)-1;
-            idx=idx+1;
+    end
+
+
+
+
+    function plotSegs(rlim)
+        switch rlim
+            case 9
+                vertLine=[0,1,5,6,7,7.5];
+            case 13
+                vertLine=[0,1,9,10, 11, 11.5];
         end
-        lim=nan(20,44);
-        nlm=nan(20,44);
-        for i=1:20
-            lim(i,:)=histcounts(li{i},-1:binSize:10)./binSize;
-            nlm(i,:)=histcounts(nl{i},-1:binSize:10)./binSize;
-        end
-        yyaxis right
-        
-        fill([-1+binSize/2:binSize:10,10-binSize/2:-binSize:-1],[(mean(lim)+std(lim)./sqrt(size(lim,1))),(fliplr(mean(lim)-std(lim)./sqrt(size(lim,1))))],'m','EdgeColor','none');
-        fill([-1+binSize/2:binSize:10,10-binSize/2:-binSize:-1],[(mean(nlm)+std(nlm)./sqrt(size(nlm,1))),(fliplr(mean(nlm)-std(nlm)./sqrt(size(nlm,1))))],'c','EdgeColor','none');
-        
-        plot(-1+binSize/2:binSize:10,mean(lim),'m:','LineWidth',1);
-        plot(-1+binSize/2:binSize:10,mean(nlm),'c:','LineWidth',1);
-        ylim([-2,7]);
-        end
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-%         text(8,diff(ylim())*0.9,sprintf('%05d',fidx),'HorizontalAlignment','center');
-%
-%             set(gcf,'PaperUnits','inches','PaperPosition',[0 0 12 6])
-%             print('-r100','-dpng',['png\DNMS4s_Match_Case',sprintf('%05d',fidx),'.png']);
-%             close all;
-%  pause;
+        plot(repmat(vertLine,2,1),repmat(ylim()',1,length(vertLine)),'--k');
     end
 
 

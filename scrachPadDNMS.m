@@ -1098,3 +1098,49 @@ data=[trajectorByLick4s;trans8s(trajectorByLick8s,binSize)];
 
 pp=pc.plotTrajectory(data,'trajectoryByLick',1:20,7);
 end
+
+
+
+
+
+
+%%
+
+
+addpath('..')
+lf=listF();
+decodingByOdor=sampleByType(lf.listDNMS4s,'sample','Average2Hz',-2,0.5,7,[30,1;30,1],500,1);
+% decodingByOdor=sampleByType(lf.listDNMS8s,'sample','Average2Hz',-2,0.5,11,[30,1;30,1],500,1);
+
+suv=SUVarTCurve();
+mvDec=suv.plotDecoding(decodingByOdor);
+avgDec=suv.plotAvgedDecoding(decodingByOdor,'late');
+mAvgDec=mean(avgDec,2);
+mMvDec=mean(mvDec,2);
+
+dynIdx=(mMvDec-mAvgDec)./(mMvDec+mAvgDec);
+[~,sIdx]=sort(dynIdx);
+pc=plotCurve;
+
+pc.plotDecoding(decodingByOdor,'7725DecoSampleVLate4s','sample','late');
+pc.plotDecoding(decodingByOdor,'7725DecoDynVDelay4s','dynamic','delay');
+pc.plotDecoding(decodingByOdor(dynIdx>0,:,:),'7725DecoDynVDelay4sPosDynIdx','dynamic','delay');
+pc.plotDecoding(decodingByOdor(dynIdx<0,:,:),'7725DecoDynVDelay4sNegDynIdx','dynamic','delay');
+pc.plotDecoding(decodingByOdor(sIdx(1:20),:,:),'7725DecoDynVDelay4sNegDynIdx20','dynamic','delay');
+pc.plotDecoding(decodingByOdor(sIdx(end-19:end),:,:),'7725DecoDynVDelay4sPosDynIdx20','dynamic','delay');
+
+% 
+% pc.plotDecoding(decodingByOdor,'7725DecoSampVDelay8s','sample','late');
+% pc.plotDecoding(decodingByOdor,'7725DecoDynVDelay8s','dynamic','late');
+% pc.plotDecoding(decodingByOdor(dynIdx>0,:,:),'7725DecoDynVDelay8sPosDynIdx','dynamic','late');
+% pc.plotDecoding(decodingByOdor(dynIdx<0,:,:),'7725DecoDynVDelay8sNegDynIdx','dynamic','late');
+% pc.plotDecoding(decodingByOdor(sIdx(1:10),:,:),'7725DecoDynVDelay8sNegDynIdx10','dynamic','late');
+% pc.plotDecoding(decodingByOdor(sIdx(end-9:end),:,:),'7725DecoDynVDelay8sPosDynIdx10','dynamic','late');
+
+
+
+
+%%
+[spkCA,seqSpkCA]=allByTypeDNMS('sample','Average2Hz',-2,1,11,true,8,1);
+fl=expand(seqSpkCA);
+close all;plotShowCaseWJ(22,5);

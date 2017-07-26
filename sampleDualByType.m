@@ -23,6 +23,7 @@ clear dp;
 para.setFormat('Dual');
 
 out=[];
+sequence=cell(0,0);
 fl=listF();
 if exist('WJ','var') && strcmp(WJ,'WJ')
     fileList=fl.listTrialFWJ();
@@ -31,15 +32,19 @@ else
 end
 fuIdx=1;
 
-for fidx=1%:size(fileList,1)
+for fidx=1:size(fileList,1)
     futures(fuIdx)=para.parGetSampleFR(fileList{fidx},classify, type,binStart,binSize,binEnd,sampleSize,repeats);
     fuIdx=fuIdx+1;
 end
 h=waitbar(0,'0');
-for fidx=1%:length(futures)
-    tmp=futures(fidx).get();
-    if numel(tmp)>0
-        out=[out;tmp];
+for fidx=1:length(futures)
+    combo=futures(fidx).get();
+    if ~isempty(combo)
+    tmp=combo.getFRData();
+        if numel(tmp)>0
+            out=[out;tmp];
+            sequence=[sequence;{strtrim(fileList(fidx,:)),combo.getKeyIdx()}];
+        end
     end
     waitbar(fidx/length(futures),h,[num2str(fidx),'/',num2str(length(futures))]);
 end

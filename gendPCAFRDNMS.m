@@ -1,8 +1,12 @@
-function gendPCAFR(none,nogo,go)
+function gendPCAFRDNMS(none,nogo,go)
 binSize=0.5;
+
+
 % none=sampleDualByType('distrNone','Average2Hz',-2,binSize,11,[100,0;100,0],1,1);
 % nogo=sampleDualByType('distrNogo','Average2Hz',-2,binSize,11,[100,0;100,0],1,1);
 % go=sampleDualByType('distrGo','Average2Hz',-2,binSize,11,[100,0;100,0],1,1);
+%%
+
 binSize=0.5;
 lf=listF();
 MatchSample=sampleByType(lf.listDNMS4s,'matchSample','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
@@ -10,14 +14,21 @@ NonMtSample=sampleByType(lf.listDNMS4s,'nonMatchSample','Average2Hz',-2,binSize,
 MatchSampleError=sampleByType(lf.listDNMS4s,'matchSampleError','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
 NonMtSampleError=sampleByType(lf.listDNMS4s,'nonMatchSampleError','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
 
-byMatch={MatchSample,NonMtSample};
+% byMatch={MatchSample,NonMtSample};
 
-firingRatesAverage=nan(size(MatchSample,1),2,3,10/binSize);
+% trialNum: N x S x Test x D
+% firingRates: N x S x Test x D x Time x maxTrialNum
+% firingRatesAverage: N x S x Test x D x Time
+
+
+firingRatesAverage=nan(size(MatchSample,1),2,2,2,10/binSize);
 
 
 for s=1:2
-    for d=1:3
-        firingRatesAverage(:,s,d,:)=getBy_S_D(s,d);
+    for test=1:2
+        for decision=1:2
+            firingRatesAverage(:,s,test,decision,:)=getBy_S_D(s, test, decision);
+        end
     end
 end
 
@@ -81,15 +92,15 @@ dpca_plot_zx(firingRatesAverage, W, V, @dpca_plot_default_zx, ...
 
 
 
-    function data=getBy_S_D(s,d)
-        data=byDistr{d};
-        bins=1/binSize+1:11/binSize;
-        half=size(data,3)/2;
-        if s==1
-            data=data(:,bins);
-        else
-            data=data(:,bins+half);
-        end
+    function data=getBy_S_D(s,test,decision)
+%         data=byDistr{d};
+%         bins=1/binSize+1:11/binSize;
+%         half=size(data,3)/2;
+%         if s==1
+%             data=data(:,bins);
+%         else
+%             data=data(:,bins+half);
+%         end
     end
 
 

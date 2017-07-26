@@ -278,9 +278,9 @@ end
 
 close all;
 ph=plotHeat;ph.binSize=5;
-ph.plot([snone;trans13(snone13)],'NoneHeat');
-ph.plot([snogo;trans13(snogo13)],'NoGoHeat');
-ph.plot([sgo;trans13(sgo13)],'GoHeat');
+ph.plot([snone;trans13(snone13)],false,'NoneHeat');
+ph.plot([snogo;trans13(snogo13)],false,'NoGoHeat');
+ph.plot([sgo;trans13(sgo13)],false,'GoHeat');
 
 convertFigs('*Heat');
 convertFigs('*Colorbar');

@@ -1,27 +1,27 @@
-function pcaMovie()
+function pcaMovie(idx)
 binSize=0.2;
 lf=listF();
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%these are for choice%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-trajectorByLick4s=sampleByType(lf.listDNMS4s,'LickAll','Average2Hz',-2,0.2,12,[20,20;20,20],100,1);
-trajectorByLick8s=sampleByType(lf.listDNMS8s,'Match','Average2Hz',-2,0.2,16,[20,20;20,20],100,1);
-data=[trajectorByLick4s;trans8s(trajectorByLick8s,0.2)];
-
-
-binSize=0.2;
-avged=mean(data,2);
-permed=permute(avged,[1 3 2]);
-trialLen=size(data,3)/4*binSize-2;
-transversed=permed(:,[6/binSize+1:(trialLen+1)/binSize,(6/binSize+1:(trialLen+1)/binSize)+size(data,3)/2])';
-
-
-[~,score,latent]=pca(transversed);
-segLen=[2,1,0.6];% CAUTION OF DELAY LEN
-segColor={'k','r','b'};
-azel=[-100,5];% match
-pcs=1:3;
+% trajectorByLick4s=sampleByType(lf.listDNMS4s,'LickAll','Average2Hz',-2,0.2,12,[20,20;20,20],100,1);
+% trajectorByLick8s=sampleByType(lf.listDNMS8s,'Match','Average2Hz',-2,0.2,16,[20,20;20,20],100,1);
+% data=[trajectorByLick4s;trans8s(trajectorByLick8s,0.2)];
+% 
+% 
+% binSize=0.2;
+% avged=mean(data,2);
+% permed=permute(avged,[1 3 2]);
+% trialLen=size(data,3)/4*binSize-2;
+% transversed=permed(:,[6/binSize+1:(trialLen+1)/binSize,(6/binSize+1:(trialLen+1)/binSize)+size(data,3)/2])';
+% 
+% 
+% [~,score,latent]=pca(transversed);
+% segLen=[2,1,0.6];% CAUTION OF DELAY LEN
+% segColor={'k','r','b'};
+% azel=[-100,5];% match
+% pcs=1:3;
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% end here%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -29,27 +29,26 @@ pcs=1:3;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%these are for sample %%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% 
-% trajectoryByOdor4s=sampleByType(lf.listDNMS4s,'Sample','Average2Hz',-2,binSize,7,[20,20;20,20],100,1);
-% % trajectoryByOdor8s=sampleByType(lf.listDNMS8s,'Sample','Average2Hz',-2,binSize,11,[20,20;20,20],100,1);
-% data=trajectoryByOdor4s;
-% 
-% 
-% segLen=[1,1,4];
-% segColor={'k','b','r'};
-% 
-% 
-% pcs=1:3;
-% azel=[-165,10];% 4s dnms
-% % azel=[95,5];% 8s dnms
-% 
-% avged=mean(data,2);
-% permed=permute(avged,[1 3 2]);
-% trialLen=sum(segLen)+1;
-% transversed=permed(:,[1/binSize+1:(trialLen+1)/binSize,(1/binSize+1:(trialLen+1)/binSize)+size(data,3)/2])';
-% 
-% [~,score,latent]=pca(transversed);
+
+
+trajectoryByOdor4s=sampleByType(lf.listDNMS4s,'Sample','Average2Hz',-2,binSize,7,[20,20;20,20],100,1);
+% trajectoryByOdor8s=sampleByType(lf.listDNMS8s,'Sample','Average2Hz',-2,binSize,11,[20,20;20,20],100,1);
+data=trajectoryByOdor4s(idx,:,:);
+segLen=[1,1,4];
+
+segColor={'k','b','r'};
+
+
+pcs=1:3;
+azel=[-165,10];% 4s dnms
+% azel=[95,5];% 8s dnms
+
+avged=mean(data,2);
+permed=permute(avged,[1 3 2]);
+trialLen=sum(segLen)+1;
+transversed=permed(:,[1/binSize+1:(trialLen+1)/binSize,(1/binSize+1:(trialLen+1)/binSize)+size(data,3)/2])';
+
+[~,score,latent]=pca(transversed);
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% end here%%%%%%%%%%%
@@ -58,8 +57,8 @@ pcs=1:3;
 
 half=size(score,1)/2;
 
-fprintf('first 3 %f\n',sum(latent(1:3))/sum(latent));
-fprintf('first 20 %f\n',sum(latent(1:20)/sum(latent)));
+% fprintf('first 3 %f\n',sum(latent(1:3))/sum(latent));
+% fprintf('first 20 %f\n',sum(latent(1:20)/sum(latent)));
 
 
 close all
@@ -84,7 +83,7 @@ plotAll(score);
         clf;
         hold on;
         grid on;
-        onset=1/binSize;%1/binSize for match, 0 for else;
+        onset=0;%1/binSize;%1/binSize for match, 0 for else;
 
         ph=gobjects(sum(segLen)/binSize,2);
         ph(onset+1,1)=plot3(score(onset+1,(pcs(1))),score(onset+1,(pcs(2))),score(onset+1,(pcs(3))),'-k.','LineWidth',lw,'MarkerSize',ms);
@@ -128,19 +127,19 @@ plotAll(score);
     function seqLegend(onset,bin,ph)
         
         
-%         tags={'\begin{tabular}{l}PF sample,\\baseline period\end{tabular}',...
-%             '\begin{tabular}{l}BN sample,\\baseline period\end{tabular}',...
-%             '\begin{tabular}{l}PF sample,\\sample period\end{tabular}',...
-%             '\begin{tabular}{l}BN sample,\\sample period\end{tabular}',...
-%             '\begin{tabular}{l}PF sample,\\delay period\end{tabular}',...
-%             '\begin{tabular}{l}BN sample,\\delay period\end{tabular}'};
+        tags={'\begin{tabular}{l}PF sample,\\baseline period\end{tabular}',...
+            '\begin{tabular}{l}BN sample,\\baseline period\end{tabular}',...
+            '\begin{tabular}{l}PF sample,\\sample period\end{tabular}',...
+            '\begin{tabular}{l}BN sample,\\sample period\end{tabular}',...
+            '\begin{tabular}{l}PF sample,\\delay period\end{tabular}',...
+            '\begin{tabular}{l}BN sample,\\delay period\end{tabular}'};
 
-        tags={'\begin{tabular}{l}Lick choice,\\test period\end{tabular}',...
-            '\begin{tabular}{l}No-lick choice,\\test period\end{tabular}',...
-            '\begin{tabular}{l}Lick choice,\\pre-response period\end{tabular}',...
-            '\begin{tabular}{l}No-lick choice,\\pre-response period\end{tabular}',...
-            '\begin{tabular}{l}Lick choice,\\response period\end{tabular}',...
-            '\begin{tabular}{l}No-lick choice,\\response period\end{tabular}'};
+%         tags={'\begin{tabular}{l}Lick choice,\\test period\end{tabular}',...
+%             '\begin{tabular}{l}No-lick choice,\\test period\end{tabular}',...
+%             '\begin{tabular}{l}Lick choice,\\pre-response period\end{tabular}',...
+%             '\begin{tabular}{l}No-lick choice,\\pre-response period\end{tabular}',...
+%             '\begin{tabular}{l}Lick choice,\\response period\end{tabular}',...
+%             '\begin{tabular}{l}No-lick choice,\\response period\end{tabular}'};
 
         seg=ceil(bin*binSize);
         if seg<=segLen(1)
@@ -162,6 +161,20 @@ plotAll(score);
             end
         end
     end
+
+    function trim()
+%         set(gcf,'Position',[100,100,370,300])
+        ls=findobj(gcf,'type','line');
+        for i=1:length(ls)
+        ls(i).MarkerSize=8;
+        end
+        for i=1:length(ls)
+        ls(i).LineWidth=1;
+        end
+        legend('off')
+        set(gcf,'Position',[100,100,800,400])
+    end
+        
 
 
 end

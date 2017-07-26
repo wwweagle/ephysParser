@@ -1,5 +1,5 @@
 function convertFigs(fname, rgb)
-javaaddpath('..\Script\hel2arial\hel2arial.jar');
+javaaddpath('R:\ZX\APC\Script\hel2arial\hel2arial.jar');
 h2a=hel2arial.Hel2arial;
 
 % close all;pl

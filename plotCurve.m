@@ -3,17 +3,18 @@ classdef plotCurve < handle
         binSize=0.5;
         per100=false;
         half=false;
+        dualPlot=false;
     end
     methods (Access=private)
         function plotOdorEdge(obj,delay)
             if delay==8
-%                 xx=[1,2,4,5.5,10,11]./obj.binSize;
+                %                 xx=[1,2,4,5.5,10,11]./obj.binSize;
                 xx=[1,2,10,11]./obj.binSize;
             elseif delay==13
                 xx=[1,2,6,7.5,15,16]./obj.binSize;
             else
                 xx=[1,2,6,7]./obj.binSize;
-            
+                
                 
             end
             for curX=1:length(xx)
@@ -63,8 +64,7 @@ classdef plotCurve < handle
             end
         end
     end
-    
-    
+  
     methods
         
         
@@ -79,7 +79,7 @@ classdef plotCurve < handle
             h=waitbar(0,'0');
             for repeat=1:repeats
                 [pf1,pf2,bn1,bn2]=obj.getSampleBins(samples,delay,repeat);
-%                 [~,score,latent]=pca([(pf1+pf2)./2;(bn1+bn2)./2]);
+                %                 [~,score,latent]=pca([(pf1+pf2)./2;(bn1+bn2)./2]);
                 [~,score,latent]=pca([pf1;pf2;bn1;bn2]);
                 [pf1s,pf2s,bn1s,bn2s]=obj.getScoreBins(score,delay,pcs);
                 out(:,1,repeat)=sqrt(sum((pf1s-pf2s).^2,2));
@@ -90,7 +90,7 @@ classdef plotCurve < handle
             delete(h);
             dist=permute(out,[3,1,2]);
             %             close all;
-
+            
             
             
             m=@(mat) mean(mat);
@@ -100,7 +100,7 @@ classdef plotCurve < handle
             ci3=permute(cis(:,:,:,3),[1 3 2]);
             
             refBins=1:1/obj.binSize;
-%             refBins=5/obj.binSize+1:6/obj.binSize;
+            %             refBins=5/obj.binSize+1:6/obj.binSize;
             normalRef=permute(mean(mean(dist(:,refBins,:),1),2),[3,1,2])./100;
             
             plotLength=delta;
@@ -111,7 +111,7 @@ classdef plotCurve < handle
             %             hpp=plot(smooth(mean(dist(:,:,1)))./normalRef(1),'-b','LineWidth',1);
             %             hpb=plot(smooth(mean(dist(:,:,2)))./normalRef(2),'-r','LineWidth',1);
             %             hbb=plot(smooth(mean(dist(:,:,3)))./normalRef(3),'-k','LineWidth',1);
-%             figure('Color','w','Position',[100,100,350,500]);
+            %             figure('Color','w','Position',[100,100,350,500]);
             figure('Color','w','Position',[100,100,350,240]);
             subplot('Position',[0.17,0.17,0.8,0.75]);
             hold on
@@ -124,10 +124,10 @@ classdef plotCurve < handle
             hpb=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,2)))./normalRef(2),'-r','LineWidth',1);
             hbb=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,3)))./normalRef(3),'-k','LineWidth',1);
             %
-%             yspan=[50,300];
-%             ylim(yspan);
+            %             yspan=[50,300];
+            %             ylim(yspan);
             yspan=ylim();
-
+            
             set(gca,'XTick',0:1/obj.binSize:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             tp=nan(delay+3,1);
             if ~exist('bonf','var')
@@ -138,9 +138,9 @@ classdef plotCurve < handle
                 [p,tbl,~]=anova1([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)],[],'off');
-%                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
-%                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
-%                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
+                %                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
+                %                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
+                %                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
                 text((i-0.5)/obj.binSize,70,p2Str(p*bonf),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
                 fprintf('4s\tAll neurons %ds\tone-way ANOVA, Bonferroni correction adjusted\t\t%d\tnumber of neurons\t\tshadow is 95%% confidence interval from bootstrapping\t\tp = %.2e\t\tF(%d, %d) = %.3f\n',i-2,size(samples,1),p*bonf,tbl{2,3},tbl{3,3},tbl{2,5});
                 tp(i)=p*bonf;
@@ -150,69 +150,69 @@ classdef plotCurve < handle
             
             obj.plotOdorEdge(delay);
             
-%             text(-0.17*plotLength,mean(yspan),'Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
-%             text(-0.12*plotLength,mean(yspan),'distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+            %             text(-0.17*plotLength,mean(yspan),'Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+            %             text(-0.12*plotLength,mean(yspan),'distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             ylabel('Normalized distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             %             text(-3,yspan(1)+(yspan(2)-yspan(1))*0.5,'(z-score)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
-
-                
+            
+            
             text(3/obj.binSize,yspan(1)+(yspan(2)-yspan(1))*0.95,['n = ',num2str(size(pf1,2))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
             
             
             pp=tp(6)*bonf;
-           
+            
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-           obj.half=true; 
-           for repeat=1:repeats
+            obj.half=true;
+            for repeat=1:repeats
                 [pf1,pf2,bn1,bn2]=obj.getSampleBins(samples,delay,repeat);
-%                 [~,score,latent]=pca([(pf1+pf2)./2;(bn1+bn2)./2]);
+                %                 [~,score,latent]=pca([(pf1+pf2)./2;(bn1+bn2)./2]);
                 [~,score,latent]=pca([pf1;pf2;bn1;bn2]);
                 [pf1s,pf2s,bn1s,bn2s]=obj.getScoreBins(score,delay,pcs);
                 out(:,1,repeat)=sqrt(sum((pf1s-pf2s).^2,2));
                 out(:,2,repeat)=sqrt(sum((pf1s-bn2s).^2,2));
                 out(:,3,repeat)=sqrt(sum((bn1s-bn2s).^2,2));
             end
-
+            
             dist=permute(out,[3,1,2]);
             %             close all;
-
+            
             
             
             m=@(mat) mean(mat);
             cis=bootci(100,m,dist);
             ci2=permute(cis(:,:,:,2),[1 3 2]);
-           
+            
             normalRef=permute(mean(mean(dist(:,1:1/obj.binSize,:),1),2),[3,1,2])./100;
             
-%             fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ci1(1,:)),(fliplr(ci1(2,:)))]./normalRef(1),[0.8,0.8,1],'EdgeColor','none');
+            %             fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ci1(1,:)),(fliplr(ci1(2,:)))]./normalRef(1),[0.8,0.8,1],'EdgeColor','none');
             fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ci2(1,:)),(fliplr(ci2(2,:)))]./normalRef(2),[1,0.8,0.8],'EdgeColor','none');
-%             fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ci3(1,:)),(fliplr(ci3(2,:)))]./normalRef(3),[0.8,0.8,0.8],'EdgeColor','none');
+            %             fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ci3(1,:)),(fliplr(ci3(2,:)))]./normalRef(3),[0.8,0.8,0.8],'EdgeColor','none');
             
-%             hpp=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,1)))./normalRef(1),'-b','LineWidth',1);
+            %             hpp=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,1)))./normalRef(1),'-b','LineWidth',1);
             hpbh=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,2)))./normalRef(2),':r','LineWidth',1);
-%             hbb=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,3)))./normalRef(3),'-k','LineWidth',1);
-
+            %             hbb=plot((1:plotLength)-0.5*obj.binSize,(mean(dist(:,:,3)))./normalRef(3),'-k','LineWidth',1);
+            
             for i=1:delay+3
                 [p,tbl,~]=anova1([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)],[],'off');
-%                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
-%                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
-%                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
+                %                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
+                %                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
+                %                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
                 text((i-0.5)/obj.binSize,60,p2Str(p*bonf),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
                 fprintf('4s half\tAll neurons %ds\tone-way ANOVA, Bonferroni correction adjusted\t\t%d\tnumber of neurons\t\tshadow is 95%% confidence interval from bootstrapping\t\tp = %.2e\t\tF(%d, %d) = %.3f\n',i-2,round(size(samples,1)/2),p*bonf,tbl{2,3},tbl{3,3},tbl{2,5});
                 tp(i)=p;
             end
-
-
-
+            
+            
+            
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             
-
+            
             
             if exist('filename','var')
                 if numel(regexpi(filename,'byodor'))>0
@@ -241,14 +241,14 @@ classdef plotCurve < handle
             ylim(yspan);
             set(gca,'XTick',0:1/obj.binSize:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             tp=nan(delay+3,1);
-%             for i=1:delay+3
-             for i=1:delay+2
+            %             for i=1:delay+3
+            for i=1:delay+2
                 p=anova1([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1), ...
                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)],[],'off');
-%                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
-%                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
-%                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
+                %                   p=ranksum([reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1);reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,1)./normalRef(1),100/obj.binSize,1)],...
+                %                     [reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,2)./normalRef(2),100/obj.binSize,1); ...
+                %                     reshape(dist(:,(i-1)/obj.binSize+1:i/obj.binSize,3)./normalRef(3),100/obj.binSize,1)]);
                 text((i-0.5)/obj.binSize,70,p2Str(p),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
                 tp(i)=p;
             end
@@ -258,17 +258,16 @@ classdef plotCurve < handle
             obj.plotOdorEdge(delay);
             legend([hpb,hpp,hbb],{'PF-BN','PF-PF','BN-BN'},'FontSize',12,'Location','none','Position',[0.66,0.88,0.1,0.1]);
             
-%             text(-0.17*plotLength,mean(yspan),'Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
-%             text(-0.12*plotLength,mean(yspan),'distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+            %             text(-0.17*plotLength,mean(yspan),'Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+            %             text(-0.12*plotLength,mean(yspan),'distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             
-%             text(-3,yspan(1)+(yspan(2)-yspan(1))*0.5,'(z-score)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
-%             text(3/obj.binSize,yspan(1)+(yspan(2)-yspan(1))*0.95,['n = ',num2str(size(samples,1))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
+            %             text(-3,yspan(1)+(yspan(2)-yspan(1))*0.5,'(z-score)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
+            %             text(3/obj.binSize,yspan(1)+(yspan(2)-yspan(1))*0.95,['n = ',num2str(size(samples,1))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
             
             
-%             pp=min([tp(1),tp(end),tp(end-1),tp(end-2)]);
+            %             pp=min([tp(1),tp(end),tp(end-1),tp(end-2)]);
         end
-        
-        
+         
         function [pp, dist,cis]=genTraj(obj,samples)
             delay=size(samples,3)/4*obj.binSize-5;
             samples=permute(samples,[1,3,2]);
@@ -301,9 +300,8 @@ classdef plotCurve < handle
             pp=min([tp(end),tp(end-1),tp(end-2)]);
             
         end
-        
-        
-        function [pb,pl]=plotDecoding(obj,samples,filename)
+%% Plot Decoding        
+        function [pb,pl]=plotDecoding(obj,samples,filename,type,type2)
             delay=size(samples,3)/4*obj.binSize-5;
             delta=(delay+3)/obj.binSize;
             samples=permute(samples,[1,3,2]);
@@ -314,32 +312,23 @@ classdef plotCurve < handle
             bins=size(pf1,1);
             for bin=1:bins
                 waitbar(bin/bins,h,sprintf('%d/%d',bin,bins));
-                decoded=nan(repeats,1);
-                shuffled=nan(repeats,1);
-                %                 parfor repeat=1:repeats
-                for repeat=1:repeats
-                    
-                    [pf1,pf2,bn1,bn2]=obj.getSampleBins(samples,delay,repeat);
-                    
-                    if rand<0.5 % Use PF Test
-                        corrPF=corrcoef(pf2(bin,:),pf1(bin,:));
-                        corrBN=corrcoef(pf2(bin,:),bn1(bin,:));
-                        decoded(repeat)=corrPF(1,2)>corrBN(1,2);
-                        
-                    else % Use BN Test
-                        corrPF=corrcoef(bn2(bin,:),pf1(bin,:));
-                        corrBN=corrcoef(bn2(bin,:),bn1(bin,:));
-                        decoded(repeat)=corrBN(1,2)>corrPF(1,2);
-                    end
-                    
-                    shuffled(repeat)=randsample([decoded(repeat),~decoded(repeat)],1);
-                end
+                [decoded,shuffled]=obj.typeDec(type,samples, delay, repeats,bin);
                 out(bin,:,:)=[decoded,shuffled];
             end
+            if exist('type2','var')
+                out2=nan(delta,repeats,2);
+                [pf1,~,~,~]=obj.getSampleBins(samples,delay,1);
+                bins=size(pf1,1);
+                for bin=1:bins
+                    waitbar(bin/bins,h,sprintf('%d/%d',bin,bins));
+                    [decoded,shuffled]=obj.typeDec(type2,samples, delay, repeats,bin);
+                    out2(bin,:,:)=[decoded,shuffled];
+                end
+            end
+                        
             delete(h);
             
-            %             close all;
-%             figure('Color','w','Position',[100,100,350,500]);
+%% Figure
             figure('Color','w','Position',[100,100,350,240]);
             subplot('Position',[0.17,0.17,0.8,0.75]);
             hold on
@@ -351,7 +340,6 @@ classdef plotCurve < handle
             ciRec=bootci(100,m,decRec);
             ciShuffle=bootci(100,m,decShuffle);
             
-            
             plotLength=(delay+3)/obj.binSize;
             
             fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ciRec(1,:)),(fliplr(ciRec(2,:)))],[1,0.8,0.8],'EdgeColor','none');
@@ -359,25 +347,39 @@ classdef plotCurve < handle
             
             hRec=plot([1:plotLength]-0.5*obj.binSize,(mean(out(:,:,1),2)),'-r','LineWidth',1);
             hShuffle=plot([1:plotLength]-0.5*obj.binSize,(mean(out(:,:,2),2)),'-k','LineWidth',1);
-            
-            
-            
-            
-%             yspan=ylim();
-%             set(gca,'YTick',0.25:0.25:1,'YTickLabel',{'25','50','75','100'},'XTick',0:1/obj.binSize:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
-            set(gca,'YTick',0.25:0.25:1,'XTick',0:1/obj.binSize:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
-            for i=1:delay+3
-                p=ranksum(reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,1),repeats/obj.binSize,1),...
-                reshape(out((i-1)/obj.binSize+1:i/obj.binSize,:,2),repeats/obj.binSize,1));
-                text((i-0.5)./obj.binSize,0.3,p2Str(p),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
+
+            if exist('type2','var')
+                decRec=out2(:,:,1)';
+                ciRec=bootci(100,m,decRec);
+                fill([1:plotLength,plotLength:-1:1]-0.5*obj.binSize,[(ciRec(1,:)),(fliplr(ciRec(2,:)))],[0.8,0.8,1],'EdgeColor','none');
+                hRec2=plot([1:plotLength]-0.5*obj.binSize,(mean(out2(:,:,1),2)),'-b','LineWidth',1);
+                
+                for i=1:delay+2
+                    p1s=obj.chiSq(out,1,out,2,i,repeats).*(delay+2).*3;
+                    p2s=obj.chiSq(out2,1,out2,2,i,repeats).*(delay+2).*3;
+                    p12=obj.chiSq(out,1,out2,1,i,repeats).*(delay+2).*3;
+                    text((i-0.5)./obj.binSize,0.25,p2Str(p1s),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','r');
+                    text((i-0.5)./obj.binSize,0.2,p2Str(p2s),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','b');
+                    text((i-0.5)./obj.binSize,0.15,p2Str(p12),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','k');
+                end
+
+                legend([hRec, hRec2, hShuffle],{'Data 1','Data 2','Shuffled Data'},'box','off','FontSize',10,'FontName','Helvetica');
+            else
+                for i=1:delay+2
+                    p=obj.chiSq(out,1,out,2,i,repeats).*(delay+2);
+                    text((i-0.5)./obj.binSize,0.3,p2Str(p),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
+                end
+                legend([hRec, hShuffle],{'Recording Data','Shuffled Data'},'box','off','FontSize',10,'FontName','Helvetica');
             end
-            
-            xlim([0,plotLength]);
+                        
+            set(gca,'YTick',0.25:0.25:1,'XTick',0:1/obj.binSize:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
+
+            xlim([0,plotLength-1/obj.binSize]);
             ylim([0.25,1]);
             
             obj.plotOdorEdge(delay);
             
-            legend([hRec, hShuffle],{'Recording Data','Shuffled Data'},'box','off','FontSize',10,'FontName','Helvetica');
+            xlabel('Time (s)','FontSize',10,'FontName','Helvetica');
             ylabel('Decoding Accuracy','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             text(3/obj.binSize,1,['n = ',num2str(size(samples,1))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
             
@@ -393,14 +395,82 @@ classdef plotCurve < handle
             %             pp=ranksum(reshape(out(5-4:5,:,1),repeats*5,1),reshape(out(5-4:5,:,2),repeats*5,1));
             %
             
-            
-            
             if exist('filename','var')
-                %                                         pause;
                 obj.writeFile(filename);
             end
+
         end
         
+        function p=chiSq(obj,data1,pos1,data2,pos2,i,repeats)
+            A=[zeros(repeats/obj.binSize,1);ones(repeats/obj.binSize,1)];
+            B=[reshape(data1((i-1)/obj.binSize+1:i/obj.binSize,:,pos1),repeats/obj.binSize,1);
+                reshape(data2((i-1)/obj.binSize+1:i/obj.binSize,:,pos2),repeats/obj.binSize,1)];
+            [~,~,p]=crosstab(A,B);
+%             
+%             p=ranksum(reshape(data((i-1)/obj.binSize+1:i/obj.binSize,:,pos),repeats/obj.binSize,1),...
+%                 reshape(data((i-1)/obj.binSize+1:i/obj.binSize,:,pos),repeats/obj.binSize,1)).*(delay+2).*3;
+        end
+        
+        function [decoded,shuffled]=typeDec(obj,type,samples,delay,repeats,bin)
+            decoded=nan(repeats,1);
+            shuffled=nan(repeats,1);
+            for repeat=1:repeats
+                [pf1,pf2,bn1,bn2]=obj.getSampleBins(samples,delay,repeat);
+                if exist('type','var') && strcmpi(type,'sample')
+                    delayBins=1/obj.binSize+1:2/obj.binSize;
+                    if rand<0.5 % Use PF Test
+                        corrPF=corrcoef(pf2(bin,:),mean(pf1(delayBins,:)));
+                        corrBN=corrcoef(pf2(bin,:),mean(bn1(delayBins,:)));
+                        decoded(repeat)=corrPF(1,2)>corrBN(1,2);
+                        
+                    else % Use BN Test
+                        corrPF=corrcoef(bn2(bin,:),mean(pf1(delayBins,:)));
+                        corrBN=corrcoef(bn2(bin,:),mean(bn1(delayBins,:)));
+                        decoded(repeat)=corrBN(1,2)>corrPF(1,2);
+                    end
+                    obj.dualPlot=true;
+                elseif exist('type','var') && strcmpi(type,'delay')
+                    delayBins=2/obj.binSize+1:(delay+2)/obj.binSize;
+                    if rand<0.5 % Use PF Test
+                        corrPF=corrcoef(pf2(bin,:),mean(pf1(delayBins,:)));
+                        corrBN=corrcoef(pf2(bin,:),mean(bn1(delayBins,:)));
+                        decoded(repeat)=corrPF(1,2)>corrBN(1,2);
+                        
+                    else % Use BN Test
+                        corrPF=corrcoef(bn2(bin,:),mean(pf1(delayBins,:)));
+                        corrBN=corrcoef(bn2(bin,:),mean(bn1(delayBins,:)));
+                        decoded(repeat)=corrBN(1,2)>corrPF(1,2);
+                    end
+                    obj.dualPlot=true;
+                elseif exist('type','var') && strcmpi(type,'late')
+                    delayBins=delay/obj.binSize+1:(delay+2)/obj.binSize;
+                    if rand<0.5 % Use PF Test
+                        corrPF=corrcoef(pf2(bin,:),mean(pf1(delayBins,:)));
+                        corrBN=corrcoef(pf2(bin,:),mean(bn1(delayBins,:)));
+                        decoded(repeat)=corrPF(1,2)>corrBN(1,2);
+                        
+                    else % Use BN Test
+                        corrPF=corrcoef(bn2(bin,:),mean(pf1(delayBins,:)));
+                        corrBN=corrcoef(bn2(bin,:),mean(bn1(delayBins,:)));
+                        decoded(repeat)=corrBN(1,2)>corrPF(1,2);
+                    end
+                    obj.dualPlot=true;
+                elseif exist('type','var') && strcmpi(type,'dynamic')
+                    if rand<0.5 % Use PF Test
+                        corrPF=corrcoef(pf2(bin,:),pf1(bin,:));
+                        corrBN=corrcoef(pf2(bin,:),bn1(bin,:));
+                        decoded(repeat)=corrPF(1,2)>corrBN(1,2);
+                        
+                    else % Use BN Test
+                        corrPF=corrcoef(bn2(bin,:),pf1(bin,:));
+                        corrBN=corrcoef(bn2(bin,:),bn1(bin,:));
+                        decoded(repeat)=corrBN(1,2)>corrPF(1,2);
+                    end
+                    obj.dualPlot=false;
+                end
+                shuffled(repeat)=randsample([decoded(repeat),~decoded(repeat)],1);
+            end
+        end
         
         function plotCorrectVIncorrect(obj,trajectoryA,trajectoryB)
             % load file4s;
@@ -463,9 +533,9 @@ classdef plotCurve < handle
             set(gca,'XTick',0:5:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             legend([ht, hf],{'Correct','Incorrect'},'box','off','FontSize',10,'FontName','Helvetica');
             text(3/obj.binSize,yspan(2),['n = ',num2str(size(trajectoryA,1))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
-%             yspan=ylim();
+            %             yspan=ylim();
             ylabel('Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
-
+            
             
         end
         
@@ -550,15 +620,13 @@ classdef plotCurve < handle
             
         end
         
-        
         function writeFile(obj,fileName)
-%             towrite=questdlg('Save File ?','Save File');
-%             if strcmpi(towrite,'yes')
-                set(gcf,'PaperPositionMode','auto');
-                savefig([fileName,'.fig']);
-%             end
+            %             towrite=questdlg('Save File ?','Save File');
+            %             if strcmpi(towrite,'yes')
+            set(gcf,'PaperPositionMode','auto');
+            savefig([fileName,'.fig']);
+            %             end
         end
-        
         
         function out=plotDecodMat(obj,samples,filename)
             delay=size(samples,3)/4*obj.binSize-5;
@@ -591,7 +659,7 @@ classdef plotCurve < handle
                     out(horiBin,vertBin,:)=decoded;
                 end
             end
-%             close all;
+            %             close all;
             figure('Color','w','Position',[100,100,410,300]);
             hold on
             mout=mean(out,3);
@@ -609,10 +677,10 @@ classdef plotCurve < handle
                 line(xspan,[xy(i),xy(i)],'LineStyle',':','LineWidth',0.5,'Color','w');
             end
             
-             set(gca,'XTick',0:1/obj.binSize:11/obj.binSize,'XTickLabel',{'','0','','','','','5','','','','','10'},'YTick',0:1/obj.binSize:11/obj.binSize,'YTickLabel',{'','0','','','','','5','','','','','10'},'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
+            set(gca,'XTick',0:1/obj.binSize:11/obj.binSize,'XTickLabel',{'','0','','','','','5','','','','','10'},'YTick',0:1/obj.binSize:11/obj.binSize,'YTickLabel',{'','0','','','','','5','','','','','10'},'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             xlabel('Sample time (s)','FontName','Helvetica','FontSize',10);
             ylabel('Template time (s)','FontName','Helvetica','FontSize',10);
-
+            
             if exist('filename','var')
                 obj.writeFile(filename);
             end

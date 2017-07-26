@@ -53,28 +53,29 @@ if exist('delayLen','var') && ismember(delayLen,[4,5,8])
     end
 end
 fuIdx=1;
-
-for fidx=1:size(fileList,1)
-    futures(fuIdx)=para.parGetAllFR(fileList(fidx,:),classify, type,binStart,binSize,binEnd,isS1);
-    fuIdx=fuIdx+1;
-end
-h=waitbar(0,'0');
-out=cell(1,1);
-for fidx=1:length(futures)
-    combo=futures(fidx).get();
-    if ~isempty(combo)
-    tmp=combo.getFRData();
-        if numel(tmp)>0
-            out{seqIdx,1}=tmp;
-            sequence{seqIdx,1}=strtrim(fileList(fidx,:));
-            sequence{seqIdx,2}=combo.getKeyIdx();
-            seqIdx=seqIdx+1;
-        end
+if size(fileList,1)>0
+    for fidx=1:size(fileList,1)
+        futures(fuIdx)=para.parGetAllFR(fileList(fidx,:),classify, type,binStart,binSize,binEnd,isS1);
+        fuIdx=fuIdx+1;
     end
-    waitbar(fidx/length(futures),h,[num2str(fidx),'/',num2str(length(futures))]);
-end
+    h=waitbar(0,'0');
+    out=cell(1,1);
+    for fidx=1:length(futures)
+        combo=futures(fidx).get();
+        if ~isempty(combo)
+        tmp=combo.getFRData();
+            if numel(tmp)>0
+                out{seqIdx,1}=tmp;
+                sequence{seqIdx,1}=strtrim(fileList(fidx,:));
+                sequence{seqIdx,2}=combo.getKeyIdx();
+                seqIdx=seqIdx+1;
+            end
+        end
+        waitbar(fidx/length(futures),h,[num2str(fidx),'/',num2str(length(futures))]);
+    end
 
-fprintf('\n');
-delete(h);
+    fprintf('\n');
+    delete(h);
+end
 
 end
