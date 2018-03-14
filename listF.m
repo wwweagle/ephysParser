@@ -1,6 +1,6 @@
 classdef listF < handle
     properties
-        root='H:\ZX\APC\RecordingAug16\';
+        root='Z:\ZX\APC\RecordingAug16\';
     end
     methods
         function f=listByWildCard(obj,suff,root)
@@ -88,7 +88,7 @@ classdef listF < handle
         end
         
         function ff=listTrialFWJ(obj)
-            f=obj.listByWildCard('*GRP.mat','H:\ZX\APC\WJ\');
+            f=obj.listByWildCard('*GRP.mat','Z:\ZX\APC\WJ\');
             ni=1;
             ff=cell(0,1);
             for i=1:size(f,1)
@@ -100,9 +100,9 @@ classdef listF < handle
         
         function ff=listOpSupp(obj,ramp)
             if exist('ramp','var') && ramp
-                f=obj.listByWildCard('*OpSupp.mat','H:\ZX\APC\OpSupp\Ramp\');
+                f=obj.listByWildCard('*OpSupp.mat','Z:\ZX\APC\OpSupp\Ramp\');
             else
-                f=obj.listByWildCard('*OpSupp.mat','H:\ZX\APC\OpSupp\Step\');
+                f=obj.listByWildCard('*OpSupp.mat','Z:\ZX\APC\OpSupp\Step\');
             end
             ni=1;
             ff=cell(0,1);
@@ -114,7 +114,7 @@ classdef listF < handle
         end
         
         function ff=listDNMS8s(obj)
-            root='H:\ZX\APC\DNMS\DNMS 8s\';
+            root='Z:\ZX\APC\DNMS\DNMS 8s\';
 
             all=ls([root,'*.mat']);
             all=[repmat(root,size(all,1),1),all];
@@ -122,7 +122,7 @@ classdef listF < handle
         end
         
         function ff=listDNMS4s(obj)
-            root='H:\ZX\APC\DNMS\DMNS 4s\';
+            root='Z:\ZX\APC\DNMS\DMNS 4s\';
 
             all=ls([root,'*.mat']);
             all=[repmat(root,size(all,1),1),all];
@@ -130,14 +130,14 @@ classdef listF < handle
         end
         
         function ff=listDNMSNaive5s(obj)
-            root='H:\ZX\APC\DNMS\Naive 5s\';
+            root='Z:\ZX\APC\DNMS\Naive 5s\';
 
             all=ls([root,'*.mat']);
             all=[repmat(root,size(all,1),1),all];
             ff=all;
             
 
-            root='H:\ZX\APC\DNMS\Naive 5s_2016\';
+            root='Z:\ZX\APC\DNMS\Naive 5s_2016\';
 
             all=ls([root,'*.mat']);
             all=[repmat(root,size(all,1),1),all];

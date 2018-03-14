@@ -2,21 +2,21 @@ function [out,sequence] = allByTypeDNMS(type, classify,binStart,binSize,binEnd,i
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
-    function genData
-        selA=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,true,false);
-        selB=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,false,false);
-        selMatchA=allByTypeDNMS('match','Average2Hz',-2,0.5,12,true,false);
-        selMatchB=allByTypeDNMS('match','Average2Hz',-2,0.5,12,false,false);
-        selTestA=allByTypeDNMS('test','Average2Hz',-2,0.5,12,true,false);
-        selTestB=allByTypeDNMS('test','Average2Hz',-2,0.5,12,false,false);
-           
-        [selMatchAError,seqA]=allByTypeDNMS('matchError','Average2Hz',-2,0.5,12,true,false);
-        [selMatchBError,seqB]=allByTypeDNMS('matchError','Average2Hz',-2,0.5,12,false,false);
-        inA=ismember(cell2mat(seqB(:,1)),cell2mat(seqA(:,1)),'rows');
-        selMatchBError=selMatchBError(inA,:);
-    end
+%     function genData
+%         selA=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,true,false);
+%         selB=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,false,false);
+%         selMatchA=allByTypeDNMS('match','Average2Hz',-2,0.5,12,true,false);
+%         selMatchB=allByTypeDNMS('match','Average2Hz',-2,0.5,12,false,false);
+%         selTestA=allByTypeDNMS('test','Average2Hz',-2,0.5,12,true,false);
+%         selTestB=allByTypeDNMS('test','Average2Hz',-2,0.5,12,false,false);
+%            
+%         [selMatchAError,seqA]=allByTypeDNMS('matchError','Average2Hz',-2,0.5,12,true,false);
+%         [selMatchBError,seqB]=allByTypeDNMS('matchError','Average2Hz',-2,0.5,12,false,false);
+%         inA=ismember(cell2mat(seqB(:,1)),cell2mat(seqA(:,1)),'rows');
+%         selMatchBError=selMatchBError(inA,:);
+%     end
 
-sequence=cell(1,2);
+
 seqIdx=1;
 path(path,'r:\ZX\Tools\Matlab Offline Files SDK\')
 dp=javaclasspath('-dynamic');
@@ -53,13 +53,16 @@ if exist('delayLen','var') && ismember(delayLen,[4,5,8])
     end
 end
 fuIdx=1;
+
 if size(fileList,1)>0
     for fidx=1:size(fileList,1)
         futures(fuIdx)=para.parGetAllFR(fileList(fidx,:),classify, type,binStart,binSize,binEnd,isS1);
         fuIdx=fuIdx+1;
     end
     h=waitbar(0,'0');
-    out=cell(1,1);
+  
+    out=cell(0,0);
+    sequence=cell(0,0);
     for fidx=1:length(futures)
         combo=futures(fidx).get();
         if ~isempty(combo)

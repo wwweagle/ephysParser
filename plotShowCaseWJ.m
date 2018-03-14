@@ -1,4 +1,4 @@
-function plotShowCaseWJ(fidx,uidx)
+function plotShowCaseWJ(fidx,tetidx,uidx)
 byLick=false;
 binSize=0.25;
 delayLen=8;
@@ -8,8 +8,11 @@ javaaddpath('R:\ZX\java\spk2fr\lib\commons-math3-3.5.jar');
 javaaddpath('R:\ZX\java\DualEvtParser\build\classes');
 s2f=spk2fr.Spk2fr;
 s2f.setWellTrainOnly(1);
-s2f.setRefracRatio(0.0015);
-s2f.setLeastFR('Average2Hz');
+% s2f.setRefracRatio(0.0015);
+% s2f.setLeastFR('Average2Hz');
+s2f.setRefracRatio(0.1);
+s2f.setLeastFR('all');
+
 % fl=listF();
 % fileList=fl.listDNMS4s();
 % fileList=fl.listDNMS8s();
@@ -31,27 +34,25 @@ for fi=fidx%1:size(fileList)
     disp(fileList{fi});
     ft=load(fileList{fi});
     spk=ft.Spk;
-    if(numel(spk)>1000)
-        info=ft.TrialInfo;
-        ts1=s2f.getTS(info(1:end/2,:),spk,'wjdnms',byLick,true);
-        ts2=s2f.getTS(info(1:end/2,:),spk,'wjdnms',byLick,false);
-        ts3=s2f.getTS(info(end/2:end,:),spk,'wjdnms',byLick,true);
-        ts4=s2f.getTS(info(end/2:end,:),spk,'wjdnms',byLick,false);
-%         ts1=s2f.getTS(inf,spk,'wjdnms',byLick,true);
-%         ts2=s2f.getTS(inf,spk,'wjdnms',byLick,false);
-        if (~isempty(ts1)) && (~isempty(ts2)) && (~isempty(ts3)) && (~isempty(ts4))
-            for tet=uidx%1:size(ts1,1)
-                plotOne(ts1{tet},fi*1000+tet*10+1);
-                plotOne(ts2{tet},fi*1000+tet*10+2);
-                plotOne(ts3{tet},fi*1000+tet*10+3);
-                plotOne(ts4{tet},fi*1000+tet*10+4);
-                
+    info=ft.TrialInfo;
+    genOne(spk,info,info(:,3)==info(:,4),true,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
+    genOne(spk,info,info(:,3)==info(:,4),false,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
+    genOne(spk,info,info(:,3)~=info(:,4),true,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
+    genOne(spk,info,info(:,3)~=info(:,4),false,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
+
+end
+    
+    function genOne(spk,info,filter,isCorrect,tetidx,uidx,fIdx)
+        if(numel(spk)>1000)
+            ts=s2f.getTS(info(filter,:),spk,'wjdnms',byLick,isCorrect);
+            keys=s2f.getKeyIdx();
+            for k=1:size(keys,1)
+                if isequal([tetidx,uidx],keys(k,:)) && (~isempty(k))
+                    plotOne(ts{k},fIdx);
+                end
             end
         end
-        disp(s2f.getKeyIdx());
     end
-end
-
 
 
 
@@ -104,6 +105,7 @@ end
         subplot('Position',[0.1,0.1,0.85,0.35]);
         hold on;
         if size(ts{1},1)==0
+            pfHist=zeros(size(-4+binSize/2:binSize:rLim));
         elseif size(ts{1},1)==1
             pfHist=histcounts(ts{1},-4:binSize:rLim)./binSize;
         else
@@ -111,6 +113,7 @@ end
             fill([-4+binSize/2:binSize:rLim,rLim-binSize/2:-binSize:-4],[(mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1))),(fliplr(mean(pfHist)-std(pfHist)./sqrt(size(pfHist,1))))],[1,0.8,0.8],'EdgeColor','none');
         end
         if size(ts{2},1)==0
+            bnHist=zeros(size(-4+binSize/2:binSize:rLim));
         elseif size(ts{2},1)==1
             bnHist=histcounts(ts{2},-4:binSize:rLim)./binSize;
         else

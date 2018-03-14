@@ -13,10 +13,54 @@ pc.binSize=0.5;
 pc.plotTrajectory(trajectoryByOdor8s,'trajectoryByOdor8s',1:20,22);
 pc.plotTrajectory(trajectoryByOdor4s,'trajectoryByOdor4s',1:20,14);
 
-decodingByOdor4s=sampleByType(lf.listDNMS4s,'sample','Average2Hz',-2,0.5,7,[30,1;30,1],500,1);
-decodingByOdor8s=sampleByType(lf.listDNMS8s,'sample','Average2Hz',-2,0.5,11,[30,1;30,1],500,1);
-pc.plotDecoding(decodingByOdor4s,'decodingByOdor4s')
-pc.plotDecoding(decodingByOdor8s,'decodingByOdor8s')
+[decodingByOdor4s,tags]=sampleByType(lf.listDNMS4s,'sample','Average2Hz',-2,0.5,7,[30,1;30,1],500,true);
+decodingByOdor8s=sampleByType(lf.listDNMS8s,'sample','Average2Hz',-2,0.5,11,[30,1;30,1],500,true);
+pc.plotDecoding(decodingByOdor4s,'decodingByOdor4s','dynamic');
+pc.plotDecoding(decodingByOdor8s,'decodingByOdor8s','dynamic');
+
+tagsExp=cell(0,0);
+for i=1:length(tags)
+    for u=1:size(tags{i,2},1)
+        tagsExp=[tagsExp;{tags{i,1},tags{i,2}(u,:)}];
+    end
+end
+
+transientIdx=p(transient,1);
+transientSel=false(size(tagsExp,1),1);
+for i=1:size(tagsExp,1)
+    for j=1:size(transientIdx,1)
+        if all(tagsExp{i,2}==transientIdx{j}{2}) && strcmp(tagsExp{i,1},transientIdx{j}{1})
+            transientSel(i)=true;
+            continue;
+        end
+    end
+end
+pc.plotDecoding(decodingByOdor4s(transientSel,:,:),'decodingByOdor4s_only_transient','dynamic');
+xlim([0.5,14])
+savefig(gcf,'decodingByOdor4s_only_transient.fig','compact');
+
+
+sustIdx=p(sust,1);
+sustSel=false(size(tagsExp,1),1);
+for i=1:size(tagsExp,1)
+    for j=1:size(sustIdx,1)
+        if all(tagsExp{i,2}==sustIdx{j}{2}) && strcmp(tagsExp{i,1},sustIdx{j}{1})
+            sustSel(i)=true;
+            continue;
+        end
+    end
+end
+pc.plotDecoding(decodingByOdor4s(sustSel,:,:),'decodingByOdor4s_only_sustained','dynamic');
+xlim([0.5,14])
+savefig(gcf,'decodingByOdor4s_only_sustained.fig','compact');
+
+
+pc.plotDecoding(decodingByOdor4s(~(sustSel | transientSel),:,:),'decodingByOdor4s_noIm','dynamic');
+xlim([0.5,14])
+savefig(gcf,'decodingByOdor4s_noImA.fig','compact');
+
+
+
 
 lf=listF();
 heatByOdor4s=sampleByType(lf.listDNMS4s,'odorZ','Average2Hz',-2,0.2,7,[200,0;200,0],1,1);
@@ -1144,3 +1188,57 @@ pc.plotDecoding(decodingByOdor(sIdx(end-19:end),:,:),'7725DecoDynVDelay4sPosDynI
 [spkCA,seqSpkCA]=allByTypeDNMS('sample','Average2Hz',-2,1,11,true,8,1);
 fl=expand(seqSpkCA);
 close all;plotShowCaseWJ(22,5);
+
+
+%%
+addpath('..');
+lf=listF();
+decodingByOdor=sampleByType(lf.listDNMS4s,'sample','Average2Hz',-2,0.5,7,[30,1;30,1],500,1);
+suv=SUVarTCurve();
+mvDec=suv.plotDecoding(decodingByOdor);
+avgDec=suv.plotAvgedDecoding(decodingByOdor,'sampledelay');
+mAvgDec=mean(avgDec,2);
+mMvDec=mean(mvDec,2);
+dynIdx=(mMvDec-mAvgDec)./(mMvDec+mAvgDec);
+[ans,sIdx]=sort(dynIdx);
+
+len=size(mvDec,1);
+dynP=nan(len,1);
+for i=1:len
+    [~,~,dynP(i)]=crosstab([zeros(1,size(mvDec,2)),ones(1,size(mvDec,2))],[mvDec(i,:),avgDec(i,:)]);
+end
+
+pc=plotCurve;
+pc.plotDecoding(decodingByOdor((dynP.*len<0.05 & dynIdx>0),:,:),'7727t3','dynamic','sampledelay');
+pc.plotDecoding(decodingByOdor((dynP.*len<0.05 & dynIdx<0),:,:),'7727t4','dynamic','sampledelay');
+
+[ImPerUnit,ImShuf,selPerUnit,selShuf, avgFR]=plotIm('delay',4,3);
+figure();
+plot(abs(selPerUnit),dynIdx,'k.');
+hold on;
+plot(abs(selPerUnit(sIdx(end-19:end))),dynIdx(sIdx(end-19:end)),'r.');
+
+
+addpath('..');
+lf=listF();
+decodingByOdor=sampleByType(lf.listDNMS4s,'sample','Average2Hz',-2,0.5,7,[30,1;30,1],500,1);
+suv=SUVarTCurve();
+smpDec=suv.plotAvgedDecoding(decodingByOdor,'sample');
+lateDec=suv.plotAvgedDecoding(decodingByOdor,'late');
+mSmpDec=mean(avgDec,2);
+mLateDec=mean(mvDec,2);
+s_lIdx=(mLateDec-mSmpDec)./(mLateDec+mSmpDec);
+[ans,sIdx]=sort(s_lIdx);
+pc=plotCurve;
+pc.plotDecoding(decodingByOdor,'7727t3','dynamic','sampledelay');
+
+s_l_dyn=suv.plotDynamic(decodingByOdor);
+s_l_m=mean(s_l_dyn,3);
+plot(s_l_m(:,1),s_l_m(:,2),'k.')
+
+
+delayLen=4;
+[spkCA,uniqTagA]=allByTypeDNMS('sample','Average2Hz',-2,0.5,11,true,delayLen,1);
+[spkCB,uniqTagB]=allByTypeDNMS('sample','Average2Hz',-2,0.5,11,false,delayLen,1);
+
+min([cellfun(@(x) size(x,2), spkCA),cellfun(@(x) size(x,2), spkCB)])

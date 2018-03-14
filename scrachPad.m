@@ -42,6 +42,57 @@ sGoDecode=sampleDualByType('distrGo','Average2Hz',-2,0.5,11,[30,1;30,1],500,1);
 sNogoDecode=sampleDualByType('distrNoGo','Average2Hz',-2,0.5,11,[30,1;30,1],500,1);
 sNoneDecode=sampleDualByType('distrNone','Average2Hz',-2,0.5,11,[30,1;30,1],500,1);
 
+[spkCA,tagA]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,true,true);
+[spkCB,tagB]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,false,true);
+% [errSpkCA,tagAE]=allByTypeDNMS('sampleerror','Average2Hz',-2,0.5,delayLen+7,true,delayLen,false);
+% [errSpkCB,tagBE]=allByTypeDNMS('sampleerror','Average2Hz',-2,0.5,delayLen+7,false,delayLen,false);
+
+spkCA=expand(spkCA);
+spkCB=expand(spkCB);
+tagA=expand(tagA);
+tagB=expand(tagB);
+
+% errSpkCA=expand(errSpkCA);
+% errSpkCB=expand(errSpkCB);
+% tagAE=expand(tagAE);
+% tagBE=expand(tagBE);
+
+spkCA=spkCA(ismember(tagA,tagB));
+spkCB=spkCB(ismember(tagB,tagA));
+
+% spkCA=spkCA(ismember(tagA,tagB) & ismember(tagA,tagAE) & ismember(tagA,tagBE));
+% spkCB=spkCB(ismember(tagB,tagA) & ismember(tagB,tagAE) & ismember(tagB,tagBE));
+% errSpkCA=errSpkCA(ismember(tagAE,tagA) & ismember(tagAE,tagBE) & ismember(tagAE,tagB));
+% errSpkCB=errSpkCB(ismember(tagBE,tagA) & ismember(tagBE,tagAE) & ismember(tagBE,tagB));
+% 
+% sel=(cellfun(@(x) size(x,2),errSpkCA)>5 & cellfun(@(x) size(x,2),errSpkCB)>5);
+% 
+% spkCA=spkCA(sel);
+% spkCB=spkCB(sel);
+% errSpkCA=errSpkCA(sel);
+% errSpkCB=errSpkCB(sel);
+
+
+% save(sprintf('%ds.mat',delayLen),'spkCA','spkCB','errSpkCA','errSpkCB');
+save(sprintf('%ds.mat',delayLen),'spkCA','spkCB');
+
+
+
+
+
+
+sNoneDecodeA=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,true,true);
+sNoneDecodeB=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,false,true);
+
+sNogoDecodeA=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,true,true);
+sNogoDecodeB=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,false,true);
+
+sGoDecodeA=allByTypeDual('distrGo','Average2Hz',-2,0.5,15,true,true);
+sGoDecodeB=allByTypeDual('distrGo','Average2Hz',-2,0.5,15,false,true);
+
+
+% grpBy, criteria,binStart,binSize,binEnd,isS1,welltrained,WJ
+
 sGoCD=sampleDualByType('distrGoIncIncorr','Average2Hz',-2,1,11,[20,10,10;20,10,10],100,1);
 sNogoCD=sampleDualByType('distrNogoIncIncorr','Average2Hz',-2,1,11,[20,10,10;20,10,10],100,1);
 sNoneCD=sampleDualByType('distrNoneIncIncorr','Average2Hz',-2,1,11,[20,10,10;20,10,10],100,1);

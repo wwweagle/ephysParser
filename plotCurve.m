@@ -216,11 +216,11 @@ classdef plotCurve < handle
             
             if exist('filename','var')
                 if numel(regexpi(filename,'byodor'))>0
-                    legend([hpb,hpbh, hpp,hbb],{'Sample PF vs. BN','Sample, 1/2 neurons','Within PF','Within BN'},'box','off','FontSize',10,'FontName','Helvetica');
+                    legend([hpb,hpbh, hpp,hbb],{'Sample PF vs. BN','Sample, 1/2 neurons','Within PF','Within BN'},'box','off','FontSize',10,'FontName','Helvetica','AutoUpdate','off');
                     %                     pause;
                     obj.writeFile(filename);
                 elseif numel(regexpi(filename,'bycorrect'))>0
-                    legend([hpb,hpp,hbb],{'Correct vs. incorrect','Within correct','Within incorrect'},'box','off');
+                    legend([hpb,hpp,hbb],{'Correct vs. incorrect','Within correct','Within incorrect'},'box','off','AutoUpdate','off');
                     %                     pause;
                     obj.writeFile(filename);
                 end
@@ -256,7 +256,7 @@ classdef plotCurve < handle
             xlim([0,plotLength]);
             
             obj.plotOdorEdge(delay);
-            legend([hpb,hpp,hbb],{'PF-BN','PF-PF','BN-BN'},'FontSize',12,'Location','none','Position',[0.66,0.88,0.1,0.1]);
+            legend([hpb,hpp,hbb],{'PF-BN','PF-PF','BN-BN'},'FontSize',12,'Location','none','Position',[0.66,0.88,0.1,0.1],'AutoUpdate','off');
             
             %             text(-0.17*plotLength,mean(yspan),'Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
             %             text(-0.12*plotLength,mean(yspan),'distance (%)','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
@@ -363,13 +363,13 @@ classdef plotCurve < handle
                     text((i-0.5)./obj.binSize,0.15,p2Str(p12),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica','Color','k');
                 end
 
-                legend([hRec, hRec2, hShuffle],{'Data 1','Data 2','Shuffled Data'},'box','off','FontSize',10,'FontName','Helvetica');
+                legend([hRec, hRec2, hShuffle],{'Data 1','Data 2','Shuffled Data'},'box','off','FontSize',10,'FontName','Helvetica','AutoUpdate','off');
             else
-                for i=1:delay+2
-                    p=obj.chiSq(out,1,out,2,i,repeats).*(delay+2);
+                for i=1:delay+3
+                    p=obj.chiSq(out,1,out,2,i,repeats).*(delay+3);
                     text((i-0.5)./obj.binSize,0.3,p2Str(p),'HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
                 end
-                legend([hRec, hShuffle],{'Recording Data','Shuffled Data'},'box','off','FontSize',10,'FontName','Helvetica');
+                legend([hRec, hShuffle],{'Recording Data','Shuffled Data'},'box','off','FontSize',10,'FontName','Helvetica','AutoUpdate','off');
             end
                         
             set(gca,'YTick',0.25:0.25:1,'XTick',0:1/obj.binSize:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
@@ -431,6 +431,19 @@ classdef plotCurve < handle
                     obj.dualPlot=true;
                 elseif exist('type','var') && strcmpi(type,'delay')
                     delayBins=2/obj.binSize+1:(delay+2)/obj.binSize;
+                    if rand<0.5 % Use PF Test
+                        corrPF=corrcoef(pf2(bin,:),mean(pf1(delayBins,:)));
+                        corrBN=corrcoef(pf2(bin,:),mean(bn1(delayBins,:)));
+                        decoded(repeat)=corrPF(1,2)>corrBN(1,2);
+                        
+                    else % Use BN Test
+                        corrPF=corrcoef(bn2(bin,:),mean(pf1(delayBins,:)));
+                        corrBN=corrcoef(bn2(bin,:),mean(bn1(delayBins,:)));
+                        decoded(repeat)=corrBN(1,2)>corrPF(1,2);
+                    end
+                    obj.dualPlot=true;
+                elseif exist('type','var') && strcmpi(type,'sampledelay')
+                    delayBins=1/obj.binSize+1:(delay+2)/obj.binSize;
                     if rand<0.5 % Use PF Test
                         corrPF=corrcoef(pf2(bin,:),mean(pf1(delayBins,:)));
                         corrBN=corrcoef(pf2(bin,:),mean(bn1(delayBins,:)));
@@ -531,7 +544,7 @@ classdef plotCurve < handle
             
             obj.plotOdorEdge(delay);
             set(gca,'XTick',0:5:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
-            legend([ht, hf],{'Correct','Incorrect'},'box','off','FontSize',10,'FontName','Helvetica');
+            legend([ht, hf],{'Correct','Incorrect'},'box','off','FontSize',10,'FontName','Helvetica','AutoUpdate','off');
             text(3/obj.binSize,yspan(2),['n = ',num2str(size(trajectoryA,1))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
             %             yspan=ylim();
             ylabel('Normalized','HorizontalAlignment','center','Rotation',90,'FontSize',10,'FontName','Helvetica');
@@ -610,7 +623,7 @@ classdef plotCurve < handle
             
             
             set(gca,'XTick',0:5:plotLength,'XTickLabel',obj.getLabels(delay),'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
-            legend([hc, hi],{'Correct','Incorrect'},'box','off','FontSize',10,'FontName','Helvetica');
+            legend([hc, hi],{'Correct','Incorrect'},'box','off','FontSize',10,'FontName','Helvetica','AutoUpdate','off');
             text(15,yspan(2),['n = ',num2str(size(trajectoryA,1))],'HorizontalAlignment','center','VerticalAlignment','top','FontSize',10,'FontName','Helvetica');
             yspan=ylim();
             ylim([60,250]);

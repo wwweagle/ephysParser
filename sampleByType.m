@@ -1,4 +1,4 @@
-function [out, sequence] = sampleByType(fileList,type,classify,binStart,binSize,binEnd,sampleSize,repeats,onlyWellTrain) %type='odor' or 'correct' ; SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
+function [out, sequence] = sampleByType(fileList,groupBy,threshold,binStart,binSize,binEnd,sampleSize,repeats,onlyWellTrain) %type='odor' or 'correct' ; SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 % dp=javaclasspath('-dynamic');
@@ -32,7 +32,7 @@ for fidx=1:size(fileList,1)
     
     currF=strtrim(fileList(fidx,:));
     if exist(currF,'file')==2
-        futures(fidx)=para.parGetSampleFR(currF,currF,classify, type,binStart,binSize,binEnd,sampleSize,repeats);
+        futures(fidx)=para.parGetSampleFR(currF,currF,threshold, groupBy,binStart,binSize,binEnd,sampleSize,repeats);
     else
         fprintf('Warining:\nFile %s does not exist',currF)
     end
