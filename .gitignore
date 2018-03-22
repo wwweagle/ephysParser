@@ -1,12 +1,2 @@
-*.eps
-*.fig
-*.mat
-*.log
-*.mp4
-*.avi
-*.asv
-*.ofb
-*.ofss
-*.zip
-*.xml
-*/
+*.*
+!*.m

@@ -452,3 +452,14 @@ X2=[DNMSSidde(:,1);DNMSSidde(:,2)];
 X1=[repmat('a',94,1);repmat('b',107,1)];
 X2=[ones(92,1);0;0;ones(82,1);zeros(107-82,1)];
 [table,chi,p]=crosstab(X1,X2);
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%            SVM
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+         %cIdx=15, gIdx=8 for 4sDNMS
+         %cIdx=10, gIdx=11 for 8sDNMS
