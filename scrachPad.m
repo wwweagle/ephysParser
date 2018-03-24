@@ -463,3 +463,20 @@ X2=[ones(92,1);0;0;ones(82,1);zeros(107-82,1)];
 
          %cIdx=15, gIdx=8 for 4sDNMS
          %cIdx=10, gIdx=11 for 8sDNMS
+         
+         
+         
+         
+[spkCA,uniqTag]=allByTypeDual('distrNone','Average2Hz',-2,0.1,15,true,true);
+[spkCB,~]=allByTypeDual('distrNone','Average2Hz',-2,0.1,15,false,true);
+save('dualNone.mat','spkCA','spkCB','uniqTag');
+
+         
+[spkCA,uniqTag]=allByTypeDual('distrGo','Average2Hz',-2,0.1,15,true,true);
+[spkCB,~]=allByTypeDual('distrGo','Average2Hz',-2,0.1,15,false,true);
+save('dualGo.mat','spkCA','spkCB','uniqTag');
+
+         
+[spkCA,uniqTag]=allByTypeDual('distrNogo','Average2Hz',-2,0.1,15,true,true);
+[spkCB,~]=allByTypeDual('distrNogo','Average2Hz',-2,0.1,15,false,true);
+save('dualNogo.mat','spkCA','spkCB','uniqTag');
