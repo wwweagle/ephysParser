@@ -1,6 +1,6 @@
-load Im4s.mat
+load Im4sDNMS.mat
 % load Im8s.mat
-pMat=cell2mat(p(:,2));
+pMat=cell2mat(pCrossTime(:,2));
 imMat=cell2mat(Im(:,2));
 xPos=[1:size(pMat,2)]*0.1-1.75-0.1;
 

@@ -15,12 +15,12 @@ uniqTag=fstr.uniqTag;
 
 fidx=0;
 tag=cell(0,0);
-for f= 3:length(spkCA)
+for f= 1:length(spkCA)
     for u=1:size(spkCA{f},1)
         fidx=fidx+1;
         tag{fidx}={uniqTag{f,1},uniqTag{f,2}(u,:)};
-%         futures(fidx)=parfeval(@plotOne,2,spkCA,spkCB,f,u,outName);
-        [a,b]=plotOne(spkCA,spkCB,f,u,outName);
+        futures(fidx)=parfeval(@plotOne,2,spkCA,spkCB,f,u,outName);
+%         [a,b]=plotOne(spkCA,spkCB,f,u,outName);
     end
 end
 
@@ -55,27 +55,26 @@ save([outName,'.mat'],'pCrossTime','Im');
             
             p_s_a=length(aSpkCount)/length(pool);
             p_s_b=length(bSpkCount)/length(pool);
+            
+            
+            pdfa=fitdist(aSpkCount','Normal');
+            pdfb=fitdist(bSpkCount','Normal');
 
-            pdfa=truncate(fitdist(aSpkCount','Normal'),0,inf);
-            pdfb=truncate(fitdist(bSpkCount','Normal'),0,inf);
-            pdfr=truncate(fitdist(pool','Normal'),0,inf);
+%             pdfa=truncate(fitdist(aSpkCount','Normal'),0,100);
+%             pdfb=truncate(fitdist(bSpkCount','Normal'),0,100);
+%             pdfr=truncate(fitdist(pool','Normal'),0,100);
             
             
 %             x=0:300;
             if (max(aSpkCount)-min(aSpkCount))~=0
-                imA=p_s_a*integral(@(x) pdf(pdfa,x)*p_s_a*(log2(pdf(pdfa,x)/pdf(pdfr,x))),-inf,inf);
-%                 imA=p_s_a*nansum(arrayfun(@(x) poisspdf(x,pdfa.lambda)*p_s_a*(log2(poisspdf(x,pdfa.lambda)/poisspdf(x,pdfr.lambda))),0:300));
-%                 imA=p_s_a*nansum(poisspdf(x,pdfa.lambda).*p_s_a.*(log2(poisspdf(x,pdfa.lambda)./poisspdf(x,pdfr.lambda))));
+                imA=p_s_a*integral(@(x) pdf(pdfa,x)*(log2(pdf(pdfa,x)/(p_s_a*pdf(pdfa,x)+p_s_b*pdf(pdfb,x)))),-inf,inf);
             else
-                imA=p_s_a*integral(@(x) -log2(pdf(pdfr,x)),-inf,inf);
-%                 imA=p_s_a*nansum(-log2(poisspdf(x,pdfr.lambda)));
+                imA=p_s_a*(-log2(pdf(pdfr,aSpkCount(1))));
             end
             if (max(bSpkCount)-min(bSpkCount))~=0
-                imB=p_s_b*integral(@(x) pdf(pdfb,x)*p_s_b*(log2(pdf(pdfb,x)/pdf(pdfr,x))),-inf,inf);
-%                 imB=p_s_b*nansum(poisspdf(x,pdfb.lambda).*p_s_a.*(log2(poisspdf(x,pdfb.lambda)./poisspdf(x,pdfr.lambda))));
+                imB=p_s_b*integral(@(x) pdf(pdfb,x)*(log2(pdf(pdfb,x)/(p_s_a*pdf(pdfa,x)+p_s_b*pdf(pdfb,x)))),-inf,inf);
             else
-                imB=p_s_b*integral(@(x) -log2(pdf(pdfr,x)),-inf,inf);
-%                 imB=p_s_b*nansum(-log2(poisspdf(x,pdfr.lambda)));
+                imB=p_s_b*(-log2(pdf(pdfr,bSpkCount(1))));
             end
             im=imA+imB;
     end
@@ -133,8 +132,8 @@ save([outName,'.mat'],'pCrossTime','Im');
             cidx=windowCenter-2;
             fprintf('%d, ',cidx);
             winRange=(cidx):(windowCenter+2);
-            aSpkCount=sum(spkCA{f}(u,:,winRange),3);
-            bSpkCount=sum(spkCB{f}(u,:,winRange),3);
+            aSpkCount=sum(spkCA{f}(u,:,winRange)*0.1,3);
+            bSpkCount=sum(spkCB{f}(u,:,winRange)*0.1,3);
             curve(cidx)=calcIm(aSpkCount,bSpkCount);
             imShuf(:,cidx)=genShuf(aSpkCount,bSpkCount,shufRpt);
             pOne(cidx)=sum(abs(imShuf(:,cidx)-mean(imShuf(:,cidx)))>abs((curve(cidx)-mean(imShuf(:,cidx)))))/shufRpt;
