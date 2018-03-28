@@ -2,12 +2,13 @@ function [pCrossTime,Im]=plotImContCluster(inName,outName)
 
 pCrossTime=cell(0,0);
 Im=cell(0,0);
-% 
-%     wd=pwd();
-%     cd r:\ZX\APC\RecordingAug16\
+
+% [spkCA,uniqTag]=allByTypeDNMS('sample','Average2Hz',-2,0.1,11,true,delayLen,true);
+% [spkCB,~]=allByTypeDNMS('sample','Average2Hz',-2,0.1,11,false,delayLen,true);
 % [spkCA,uniqTag]=allByTypeDual('distrNone','Average2Hz',-2,0.1,15,true,true);
 % [spkCB,~]=allByTypeDual('distrNone','Average2Hz',-2,0.1,15,false,true);
-%     cd(wd);
+
+
 fstr=load(inName);
 spkCA=fstr.spkCA;
 spkCB=fstr.spkCB;
@@ -60,21 +61,16 @@ save([outName,'.mat'],'pCrossTime','Im');
             pdfa=fitdist(aSpkCount','Normal');
             pdfb=fitdist(bSpkCount','Normal');
 
-%             pdfa=truncate(fitdist(aSpkCount','Normal'),0,100);
-%             pdfb=truncate(fitdist(bSpkCount','Normal'),0,100);
-%             pdfr=truncate(fitdist(pool','Normal'),0,100);
-            
-            
-%             x=0:300;
+
             if (max(aSpkCount)-min(aSpkCount))~=0
                 imA=p_s_a*integral(@(x) pdf(pdfa,x)*(log2(pdf(pdfa,x)/(p_s_a*pdf(pdfa,x)+p_s_b*pdf(pdfb,x)))),-inf,inf);
             else
-                imA=p_s_a*(-log2(pdf(pdfr,aSpkCount(1))));
+                imA=p_s_a*(-log2((p_s_a+p_s_b*pdf(pdfb,aSpkCount(1)))));
             end
             if (max(bSpkCount)-min(bSpkCount))~=0
                 imB=p_s_b*integral(@(x) pdf(pdfb,x)*(log2(pdf(pdfb,x)/(p_s_a*pdf(pdfa,x)+p_s_b*pdf(pdfb,x)))),-inf,inf);
             else
-                imB=p_s_b*(-log2(pdf(pdfr,bSpkCount(1))));
+                imB=p_s_b*(-log2((p_s_b+p_s_a*pdf(pdfa,bSpkCount(1)))));
             end
             im=imA+imB;
     end
@@ -109,9 +105,12 @@ save([outName,'.mat'],'pCrossTime','Im');
         xlabel('Time (s)');
         ylabel('Mutual Info (bits)');
         
-        plotOne=@(x) plot([x,x],[-1,1],':k','LineWidth',0.5);
-        arrayfun(plotOne,[0 1 5 6]);
-%         arrayfun(@(x) text(xPos,-0.05,p2str(pOne),'FontSize',10,'HorizontalAlignment','center'),1:length(p));
+        plotTag=@(x) plot([x,x],[-1,1],':k','LineWidth',0.5);
+        if contains(inName,'8s','IgnoreCase',true) || contains(outName,'8s','IgnoreCase',true) 
+            arrayfun(plotTag,[0 1 3 3.5 4 4.5 9 10]);
+        else
+            arrayfun(plotTag,[0 1 5 6]);
+        end
         plot(xPos(pOne<0.01),-0.05,'k.');
         xlim([-1,11]);
         savefig(cf,[fnameTag,num2str(f*1000+u),'.fig'],'compact');
@@ -125,7 +124,6 @@ save([outName,'.mat'],'pCrossTime','Im');
         curveLen=size(spkCA{1},3);
         curve=nan(1,curveLen-4);
         imShuf=nan(shufRpt,curveLen-4);
-%         futures=nan(size(curve));
         pOne=nan(size(curve));
         for windowCenter=3:curveLen-2
             %calc

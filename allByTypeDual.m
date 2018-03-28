@@ -1,4 +1,4 @@
-function [out,sequence] = allByTypeDNMS(grpBy, criteria,binStart,binSize,binEnd,isS1,welltrained,WJ) %SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
+function [out,sequence] = allByTypeDual(grpBy, criteria,binStart,binSize,binEnd,isS1,welltrained,WJ) %SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
