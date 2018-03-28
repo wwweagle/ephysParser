@@ -32,8 +32,8 @@ for ffidx=1:fidx
         pCrossTime=[pCrossTime;{tag{ffidx},ps}];
         Im=[Im;{tag{ffidx},ims}];
     catch ME
-        disp(ffidx);
-        disp(ME.identifier); 
+%         disp(ffidx);
+%         disp(ME.identifier);
     end
 end
 
@@ -65,12 +65,12 @@ save([outName,'.mat'],'pCrossTime','Im');
             if (max(aSpkCount)-min(aSpkCount))~=0
                 imA=p_s_a*integral(@(x) pdf(pdfa,x)*(log2(pdf(pdfa,x)/(p_s_a*pdf(pdfa,x)+p_s_b*pdf(pdfb,x)))),-inf,inf);
             else
-                imA=p_s_a*(-log2((p_s_a+p_s_b*pdf(pdfb,aSpkCount(1)))));
+                imA=-p_s_a*log2(nnz(pool==aSpkCount(1))/length(pool));
             end
             if (max(bSpkCount)-min(bSpkCount))~=0
                 imB=p_s_b*integral(@(x) pdf(pdfb,x)*(log2(pdf(pdfb,x)/(p_s_a*pdf(pdfa,x)+p_s_b*pdf(pdfb,x)))),-inf,inf);
             else
-                imB=p_s_b*(-log2((p_s_b+p_s_a*pdf(pdfa,bSpkCount(1)))));
+                imB=-p_s_b*log2(nnz(pool==bSpkCount(1))/length(pool));
             end
             im=imA+imB;
     end
@@ -96,11 +96,11 @@ save([outName,'.mat'],'pCrossTime','Im');
         hold on;
         xPos=[1:length(curve)]*0.1-1.75-0.1;
         
-        shufs=bootci(100,@(x) nanmean(x),imShuf);
+        shufs=bootci(100,@(x) mean(x),imShuf);
         fill([xPos,fliplr(xPos)],[shufs(1,:),fliplr(shufs(2,:))],'k','FaceAlpha',0.2,'EdgeColor','none');
         plot(xPos,mean(shufs),'-k','LineWidth',1);
         plot(xPos,curve,'-r.','LineWidth',1);
-        ylim([-0.1,0.6]);
+        ylim([-0.1,1.1]);
         set(gca,'XTick',0:5:10);
         xlabel('Time (s)');
         ylabel('Mutual Info (bits)');
