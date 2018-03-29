@@ -1,11 +1,10 @@
-function svmCluster(delayLen,dataFile)
+function svmCrossCluster()
 
 % 
 %  saveDualCrossoverFile();
 %  return;
 
 
-isW_Error=false;
 %%%%%%%%%onCluster%%%%%%%%%%
 % addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
 % decRpt=500;
@@ -15,19 +14,15 @@ isW_Error=false;
 decRpt=500;
 permRpt=1000;
 
-% saveFile(delayLen,dataFile);
-
 instCount=30;
-fstr=load(dataFile);
+fstr=load('dualCrossSVM.mat');
+delayLen=8;
 tsLen=(delayLen+8)*2;
 
 
 spkCA=fstr.spkCA;
 spkCB=fstr.spkCB;
-if isW_Error
-    errSpkCA=fstr.errSpkCA;
-    errSpkCB=fstr.errSpkCB;
-end
+
 crange=2.^(-5:0.5:5);
 grange=2.^(-13:0.5:-3);
 
@@ -47,11 +42,7 @@ for cIdx=1%:length(crange)
         
         futures=parallel.FevalFuture.empty(0,tsLen);
         for ts=3:tsLen
-            if isW_Error
-                futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g,isW_Error);
-            else
                 futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error);
-            end
 %             accuracy(:,:,ts)=svmOneTSBin(ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error);
         end
         
@@ -66,19 +57,7 @@ for cIdx=1%:length(crange)
             pvShuf(2,:)=permTest(tsLen,accuracy,2,3,permRpt).*(tsLen-2);
             pvShuf(3,:)=permTest(tsLen,accuracy,1,2,permRpt).*(tsLen-2);
         end
-        %         for ts=3:tsLen
-        %             currDiff=abs(mean(accuracy(:,1,ts))-mean(accuracy(:,2,ts)));
-        %             flat=@(x) x(:);
-        %             pool=flat(accuracy(:,:,ts));
-        %             shufDiff=nan(permRpt);
-        %             for i=1:permRpt
-        %                 sPool=pool(randperm(length(pool)));
-        %                 shufDiff(i)=abs(mean(sPool(1:size(accuracy,1)))-mean(sPool(size(accuracy,1)+1:end)));
-        %             end
-        %             pvShuf(1,ts)=nnz(shufDiff>=currDiff)/permRpt;
-        %         end
-        
-        %         disp(pvShuf);
+
         
         fh=figure('Color','w','Position',[1000,100,250,180]);
         hold on;
@@ -402,8 +381,8 @@ end
 
 function saveDualCrossoverFile()
 
-[spkCA,tagA]=allByTypeDual('sample','Average2Hz',-2,0.1,15,true,true);
-[spkCB,tagB]=allByTypeDual('sample','Average2Hz',-2,0.1,15,false,true);
+[spkCA,tagA]=allByTypeDual('sample','Average2Hz',-2,0.5,15,true,true);
+[spkCB,tagB]=allByTypeDual('sample','Average2Hz',-2,0.5,15,false,true);
 
 [spkCANone,tagANone]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,true,true);
 [spkCBNone,tagBNone]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,false,true);
