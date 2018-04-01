@@ -1,14 +1,14 @@
 function svmCrossCluster()
 
 %%%%%%%%onCluster%%%%%%%%%%
-% addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
-% decRpt=500;
-% permRpt=1000;
-
-%%%%%%%%%%local%%%%%%%%%
-addpath('R:\ZX\libsvm-3.22\windows\');
+addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
 decRpt=500;
 permRpt=1000;
+
+% %%%%%%%%%%local%%%%%%%%%
+% addpath('R:\ZX\libsvm-3.22\windows\');
+% decRpt=5%00;
+% permRpt=10%00;
 
 instCount=30;
 load('dualCrossSVM.mat','allSpks');
@@ -22,9 +22,8 @@ avgAccu=nan(length(crange),length(grange),length(3:tsLen),3);
 
 for cIdx=1%:length(crange)
     for gIdx=1%:length(grange)
-         c=crange(8);
-         g=grange(14);
-         
+         c=crange(5);
+         g=grange(7);
         
         accuracyAll=nan(decRpt,length(allSpks)-2,(tsLen+2));
         pvShufAll=nan(3,tsLen+2);
@@ -38,7 +37,7 @@ for cIdx=1%:length(crange)
             accuracyAll(:,:,ts)=fetchOutputs(futures(ts));
         end
         
-        for tIdx=5%:2:size(accuracyAll,2)
+        for tIdx=1:2:size(accuracyAll,2)
             accuracy=nan(decRpt,3,(tsLen+2));
             accuracy(:,[1 3],:)=accuracyAll(:,tIdx:tIdx+1,:);
 
@@ -71,7 +70,8 @@ for cIdx=1%:length(crange)
             ylabel('Sample decoding accuracy');
             title(sprintf('%s, c@%.4f, g@%0.4f, n = %d',sprintf('dualCross %d ',tIdx),c,g,sum(cellfun(@(x) size(x,1),allSpks{1}))));
             print(sprintf('SVM%s_c%.4f_g%0.4f.png',sprintf('dualCross_%d_',tIdx),c,g),'-dpng');
-%             close(fh);
+            savefig(sprintf('SVM%s_c%.4f_g%0.4f.fig',sprintf('dualCross_%d_',tIdx),c,g));
+            close(fh);
             avgAccu(cIdx,gIdx,:,(tIdx+1)/2)=mean(squeeze(accuracy(:,1,3:tsLen)));
             pvShufAll((tIdx+1)/2,:)=pvShuf;
         end
@@ -103,7 +103,7 @@ for rpt=1:decRpt
 %     instMatRaw=[cell2mat(arrayfun(@(x) allSpks{1}{x}(:,instIdces(x,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false)),...
 %         cell2mat(arrayfun(@(x) allSpks{2}{x}(:,instIdces(x+size(instIdces,1)/2,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false))]';
 
-    for interest=7%:2:7
+    for interest=3:2:7
         noIntA=[3 5 7];
         noIntA(noIntA==interest)=[];
         noIntB=noIntA+1;
@@ -118,15 +118,15 @@ for rpt=1:decRpt
     labelVec=[ones(instCount,1);ones(instCount,1)*2];
     svmModel=svmtrain(labelVec,instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
     shufModel=svmtrain(labelVec(randperm(length(labelVec))),instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
-    
-    testMat=(testMatRaw-repmat(min(instMatRaw),2,1))./repmat(scale,2,1);
-    testMat(:,scale==0)=[];
-    testLabelVec=[1;2];
-    [prLbl,accuracyVec,~]=svmpredict(testLabelVec,testMat,svmModel);
-    rtnIdx=interest-2;
-    accuracy(rpt,rtnIdx)=accuracyVec(1);
-    [~,accuracyVec,~]=svmpredict(testLabelVec,testMat,shufModel);
-    accuracy(rpt,rtnIdx+1)=accuracyVec(1);
+
+        testMat=(testMatRaw-repmat(min(instMatRaw),2,1))./repmat(scale,2,1);
+        testMat(:,scale==0)=[];
+        testLabelVec=[1;2];
+        [prLbl,accuracyVec,~]=svmpredict(testLabelVec,testMat,svmModel);
+        rtnIdx=interest-2;
+        accuracy(rpt,rtnIdx)=accuracyVec(1);
+        [~,accuracyVec,~]=svmpredict(testLabelVec,testMat,shufModel);
+        accuracy(rpt,rtnIdx+1)=accuracyVec(1);
     end
 end
 end
@@ -162,10 +162,6 @@ test=cell2mat(arrayfun(@(x) spksW_test{x}(:,testIdx(x),ts),1:length(testIdx),'Un
 for i=1:length(testIdx)
     spksW_test{i}(:,testIdx(i),:)=[];
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%
-% full or partial cross %
-%%%%%%%%%%%%%%%%%%%%%%%%%
 spks{length(spks)+1}=spksW_test;
 
 suCount=cell2mat(arrayfun(@(y) ...

@@ -12,6 +12,7 @@ isW_Error=false;
 % permRpt=1000;
 
 %%%%%%%%%%local%%%%%%%%%
+addpath('R:\ZX\libsvm-3.22\windows\');
 decRpt=500;
 permRpt=1000;
 
@@ -32,11 +33,11 @@ crange=2.^(-5:0.5:5);
 grange=2.^(-13:0.5:-3);
 
 avgAccu=nan(length(crange),length(grange),length(3:tsLen),2);
-
+accuracyAll=nan(length(crange),length(grange),decRpt,3,(tsLen+2));
 for cIdx=1%:length(crange)
     for gIdx=1%:length(grange)
-         c=crange(14);
-         g=grange(14);
+         c=crange(9);
+         g=grange(10);
          
          %cIdx=15, gIdx=8 for 4sDNMS
          %cIdx=10, gIdx=11 for 8sDNMS
@@ -125,11 +126,12 @@ for cIdx=1%:length(crange)
 %         close(fh);
         avgAccu(cIdx,gIdx,:,1)=mean(squeeze(accuracy(:,1,3:tsLen)));
         avgAccu(cIdx,gIdx,:,2)=mean(squeeze(accuracy(:,2,3:tsLen)));
+        accuracyAll(cIdx,gIdx,:,:,:)=accuracy;
     end
 end
 
 save(sprintf('avgAccu%s',dataFile),'avgAccu');
-save(sprintf('Accu%s',dataFile),'accuracy','pvShuf');
+save(sprintf('Accu%s',dataFile),'accuracyAll','pvShuf');
 end
 
 
@@ -241,10 +243,10 @@ end
 end
 
 function saveDNMSFile(delayLen,dataFile)
-delayLen=4;
-[spkCA,tagA]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,true,delayLen,true);
-[spkCB,tagB]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,false,delayLen,true);
-dataFile='4sDNMS.mat';
+delayLen=5;
+[spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,delayLen+7,true,delayLen,false);
+[spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,delayLen+7,false,delayLen,false);
+dataFile='5sDNMSNaive.mat';
 
 spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)));
 tagA=tagA(ismember(tagA(:,1),tagB(:,1)),:);

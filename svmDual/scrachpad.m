@@ -1,0 +1,1 @@
+mm=mean(avgAccu(:,:,(16:22),1),3);figure;imagesc(mm);colorbar;

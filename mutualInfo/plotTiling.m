@@ -1,16 +1,25 @@
 % load Im4sDNMS.mat
 % load Im8s.mat
-inFile='ImDualAll8s.mat';
+inFile='Im4sDNMS.mat';
+% inFile='ImDualAll8s.mat';
+% inFile='ImDualAll13s.mat';
+% inFile='im8sDNMS.mat';
+% inFile='im5sDNMSNaive.mat';
 
 load(inFile);
 pMat=cell2mat(pCrossTime(:,2));
 imMat=cell2mat(Im(:,2));
 xPos=[1:size(pMat,2)]*0.1-1.75-0.1;
 
-if size(imMat,2)<130
-    sdtTS=19:(19+59);
-else
-    sdtTS=19:(19+59)+40;
+switch size(imMat,2)<1
+    case 126
+        sdtTS=19:(19+59);
+    case 166
+        sdtTS=19:(19+59)+40;
+    case 136
+        sdtTS=19:(19+59)+10;
+    case 216
+        sdtTS=19:(19+59)+90;
 end
 
 transient=false(size(pMat,1),1);
@@ -19,15 +28,16 @@ peak=zeros(size(pMat,1),1);
 
 for u=1:size(pMat,1)
     tVec=pMat(u,sdtTS);
+    iVec=imMat(u,sdtTS);
     for i=1:length(sdtTS)-29
-        if all(tVec(i:i+29)<0.001)
+        if all(tVec(i:i+29)<0.001) && all(iVec(i:i+29)>0)
             sust(u)=true;
             break;
         end
     end
     if ~sust(u)
         for i=1:length(sdtTS)-4
-            if all(tVec(i:i+4)<0.001)
+            if all(tVec(i:i+4)<0.001) && all(iVec(i:i+4)>0)
                 transient(u)=true;
                 break;
             end
@@ -46,6 +56,8 @@ if nnz(sust)>0
     fh=plotTile(sust,sdtTS,xPos,imMat,peak);
     savefig(fh,[replace(inFile,'.mat',''),'tileSust.fig'],'compact');
 end
+fprintf('\n%s, %.4f, %.4f\n',inFile,nnz(sust)/length(sust),nnz(transient)/length(transient));
+
 
 
 function fh=plotTile(selection,sdtTS,xPos,imMat,peak)
