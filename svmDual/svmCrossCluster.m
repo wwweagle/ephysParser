@@ -23,7 +23,7 @@ avgAccu=nan(length(crange),length(grange),length(3:tsLen),3);
 for cIdx=1%:length(crange)
     for gIdx=1%:length(grange)
          c=crange(8);
-         g=grange(14);
+         g=grange(1);
          
         
         accuracyAll=nan(decRpt,length(allSpks)-2,(tsLen+2));
@@ -64,7 +64,7 @@ for cIdx=1%:length(crange)
             
             
             arrayfun(@(x) plot([x,x],ylim(),':k'),[1 2 delayLen+2 delayLen+3]*2+0.5);
-            set(gca,'XTick',[0:5:10]*2+0.5,'XTickLabel',0:5:10,'YTick',0.5:0.25:1);
+            set(gca,'XTick',[1:5:11]*2+0.5,'XTickLabel',0:5:10,'YTick',0.5:0.25:1);
             xlim([0,tsLen-6]);
             ylim([0.4,1]);
             xlabel('Time (s)');
@@ -90,18 +90,6 @@ function accuracy=svmOneTSBin(ts,instCount,allSpks,decRpt,c,g)
 
 accuracy=nan(decRpt,length(allSpks)-2);
 for rpt=1:decRpt
-%     instPerSess=[cell2mat(arrayfun(@(y) cellfun(@(x) size(x,2),allSpks{y}),[3 5 7],'UniformOutput',false));
-%         cell2mat(arrayfun(@(y) cellfun(@(x) size(x,2),allSpks{y}),[4 6 8],'UniformOutput',false))];
-%     instIdces=cell(size(instPerSess,1),instCount+1);
-%     for i=1:size(instPerSess,1)
-%         idces=flexPerm(sum(instPerSess(i,:)),instCount+1)
-%         
-%     end
-%     
-%     instIdces=cell2mat(arrayfun(@(x) flexPerm(x,instCount+1),instPerSess,'UniformOutput',false));
-%   
-%     instMatRaw=[cell2mat(arrayfun(@(x) allSpks{1}{x}(:,instIdces(x,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false)),...
-%         cell2mat(arrayfun(@(x) allSpks{2}{x}(:,instIdces(x+size(instIdces,1)/2,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false))]';
 
     for interest=7%:2:7
         noIntA=[3 5 7];

@@ -1,4 +1,4 @@
-function svmCluster(delayLen,dataFile)
+function svmCluster()
 
 %%%%%%%%%onCluster%%%%%%%%%%
 % addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
@@ -13,29 +13,27 @@ permRpt=1000;
 % saveFile(delayLen,dataFile);
 
 instCount=30;
-fstr=load(dataFile);
+dataFile='multiSamples.mat';
+load(dataFile,'samples');
+delayLen=5;
 tsLen=(delayLen+8)*2;
-
-
-spkCA=fstr.spkCA;
-spkCB=fstr.spkCB;
 
 crange=2.^(-5:0.5:5);
 grange=2.^(-13:0.5:-3);
 
 avgAccu=nan(length(crange),length(grange),length(3:tsLen),2);
-accuAll=nan(length(crange),length(grange),decRpt,2,tsLen+2);
-pvShufAll=nan(length(crange),length(grange),tsLen);
+accuAll=nan(length(crange),length(grange),decRpt,3,tsLen+2);
+pvShufAll=nan(length(crange),length(grange),tsLen+2);
 for cIdx=1:length(crange)
     for gIdx=1:length(grange)
         c=crange(cIdx);
         g=grange(gIdx);
-        accuracy=nan(decRpt,2,tsLen+2);
+        accuracy=nan(decRpt,3,tsLen+2);
         
         futures=parallel.FevalFuture.empty(0,tsLen);
         for ts=3:tsLen
-            futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g);
-            %             accuracy(:,:,ts)=svmOneTSBin(ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g);
+            futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,samples,decRpt,c,g);
+%             accuracy(:,:,ts)=svmOneTSBin(ts,instCount,samples,decRpt,c,g);
         end
         
         for ts=3:tsLen
@@ -43,22 +41,8 @@ for cIdx=1:length(crange)
         end
 
 %         accuracy=accu(randperm(1000,500),:,:);
-        pvShuf=nan(3,(tsLen+2));
-        pvShuf(1,:)=permTest(tsLen,accuracy,1,3,permRpt).*(tsLen-2);
-
-        %         for ts=3:tsLen
-        %             currDiff=abs(mean(accuracy(:,1,ts))-mean(accuracy(:,2,ts)));
-        %             flat=@(x) x(:);
-        %             pool=flat(accuracy(:,:,ts));
-        %             shufDiff=nan(permRpt);
-        %             for i=1:permRpt
-        %                 sPool=pool(randperm(length(pool)));
-        %                 shufDiff(i)=abs(mean(sPool(1:size(accuracy,1)))-mean(sPool(size(accuracy,1)+1:end)));
-        %             end
-        %             pvShuf(1,ts)=nnz(shufDiff>=currDiff)/permRpt;
-        %         end
-        
-        %         disp(pvShuf);
+%         accuracy(:,3,:)=accuracy(:,2,:);
+        pvShuf=permTest(tsLen,accuracy,1,3,permRpt).*(tsLen-2);
         
         fh=figure('Color','w','Position',[1000,100,250,180]);
         hold on;
@@ -73,91 +57,106 @@ for cIdx=1:length(crange)
         plot(mean(squeeze(accuracy(:,3,3:tsLen)))./100,'-k','LineWidth',1);
         
         for i=3:tsLen-1
-%             fprintf('%.4f,',max(pvShuf(1,i:i+1)))
-            if max(pvShuf(1,i:i+1))<0.001
-                plot(i-2:i-1,[0.425,0.425],'-r','LineWidth',1);
+            if max(pvShuf(i:i+1))<0.001
+                plot(i-2:i-1,[0.05,0.05],'-r','LineWidth',1);
             end
-
         end
         
         
         arrayfun(@(x) plot([x,x],ylim(),':k'),[1 2 delayLen+2 delayLen+3]*2+0.5);
-        set(gca,'XTick',[0:5:10]*2+0.5,'XTickLabel',0:5:10,'YTick',0.5:0.25:1);
+        set(gca,'XTick',[1:5:11]*2+0.5,'XTickLabel',0:5:10,'YTick',0:0.5:1);
         xlim([0,tsLen-6]);
-        ylim([0.4,1]);
+        ylim([0,1]);
         xlabel('Time (s)');
         ylabel('Sample decoding accuracy');
-        title(sprintf('%s, c@%.4f, g@%0.4f, n = %d',strrep(dataFile,'.mat',''),c,g,sum(cellfun(@(x) size(x,1),spkCA))));
+        title(sprintf('%s, c@%.4f, g@%0.4f, n = %d',strrep(dataFile,'.mat',''),c,g,sum(cellfun(@(x) size(x,1),samples{1}))));
         print(sprintf('SVM%s_c%.4f_g%0.4f.png',dataFile,c,g),'-dpng');
-%         close(fh);
+        close(fh);
         avgAccu(cIdx,gIdx,:,1)=mean(squeeze(accuracy(:,1,3:tsLen)));
         avgAccu(cIdx,gIdx,:,2)=mean(squeeze(accuracy(:,2,3:tsLen)));
         accuAll(cIdx,gIdx,:,:,:)=accuracy;
-        
+        pvShufAll(cIdx,gIdx,:)=pvShuf;
         save(sprintf('avgAccu%s',dataFile),'avgAccu');
-        save(sprintf('Accu%s',dataFile),'accuracy','pvShuf');
+        save(sprintf('Accu%s',dataFile),'accuAll','pvShufAll');
     end
 end
 
 end
 
 
+function accuracy=svmOneTSBin(ts,instCount,allSpks,decRpt,c,g)
 
-function accuracy=svmOneTSBin(ts,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g)
 accuracy=nan(decRpt,3);
 for rpt=1:decRpt
-    instPerSess=[cellfun(@(x) size(x,2),spkCA); cellfun(@(x) size(x,2), spkCB)];
-    instIdces=cell2mat(arrayfun(@(x) flexPerm(x,instCount+1),instPerSess,'UniformOutput',false));
-    testInstIdces=instIdces(:,1);
-    instIdces=instIdces(:,2:end);
+    test=cell(1,6);
+    template=cell(1,6);
+    for sampIdx=1:6
+        [test{sampIdx},template{sampIdx}]=chooseKfromMultiN(allSpks{sampIdx},true,instCount,ts);
+    end
     
-    instPerErrSess=[cellfun(@(x) size(x,2),errSpkCA); cellfun(@(x) size(x,2), errSpkCB)];
-    errTestIdces=arrayfun(@(x) randperm(x,1),instPerErrSess);
+    instMatRaw=cell2mat(template)';
+    testMatRaw=cell2mat(test)';
     
-    instMatRaw=[cell2mat(arrayfun(@(x) spkCA{x}(:,instIdces(x,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false)),...
-        cell2mat(arrayfun(@(x) spkCB{x}(:,instIdces(x+size(instIdces,1)/2,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false))]';
-    
-    testMatRaw=[cell2mat(arrayfun(@(x) spkCA{x}(:,testInstIdces(x,:),ts),(1:size(testInstIdces,1)/2)','UniformOutput',false)),...
-        cell2mat(arrayfun(@(x) spkCB{x}(:,testInstIdces(x+size(testInstIdces,1)/2,:),ts),(1:size(testInstIdces,1)/2)','UniformOutput',false))]';
-    
-    errTestMatRaw=[cell2mat(arrayfun(@(x) errSpkCA{x}(:,errTestIdces(x),ts),(1:size(errTestIdces,1)/2)','UniformOutput',false)),...
-        cell2mat(arrayfun(@(x) errSpkCB{x}(:,errTestIdces(x+size(errTestIdces,1)/2),ts),(1:size(errTestIdces,1)/2)','UniformOutput',false))]';
-    
-    
-    %
-    %         instMatRaw=[cell2mat(cellfun(@(x) x(:,instIdces,ts), spkCA,'UniformOutput',false)),...
-    %             cell2mat(cellfun(@(x) x(:,instIdces,ts), spkCB,'UniformOutput',false))]';
-    
-    scale=(max(instMatRaw)-min(instMatRaw));%1x205
-    instMat=(instMatRaw-repmat(min(instMatRaw),2*instCount,1))./repmat(scale,2*instCount,1);
+    scale=(max(instMatRaw)-min(instMatRaw));
+    instMat=(instMatRaw-repmat(min(instMatRaw),instCount*6,1))./repmat(scale,instCount*6,1);
     instMat(:,scale==0)=[];
-    %         testMatRaw=[cell2mat(cellfun(@(x) x(:,testInstIdx,ts), spkCA,'UniformOutput',false)),...
-    %             cell2mat(cellfun(@(x) x(:,testInstIdx,ts), spkCB,'UniformOutput',false))]';
-    testMat=(testMatRaw-repmat(min(instMatRaw),2,1))./repmat(scale,2,1);
-    errTestMat=(errTestMatRaw-repmat(min(instMatRaw),2,1))./repmat(scale,2,1);
-    
-    testMat(:,scale==0)=[];
-    errTestMat(:,scale==0)=[];
-    labelVec=[ones(instCount,1);ones(instCount,1)*2];
-    testLabelVec=[1;2];
-    
-    
-    
+    labelVec=cell2mat(arrayfun(@(x) repmat(x,instCount,1),(1:6)','UniformOutput',false));
     svmModel=svmtrain(labelVec,instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
-
+    shufModel=svmtrain(labelVec(randperm(length(labelVec))),instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
+    
+    testMat=(testMatRaw-min(instMatRaw))./scale;
+    testMat(:,scale==0)=[];
+    testLabelVec=(1:6)';
     [prLbl,accuracyVec,~]=svmpredict(testLabelVec,testMat,svmModel);
-%     fprintf('%d_1_%d, %d_2_%d, ',ts,prLbl(1),ts,prLbl(2));
     accuracy(rpt,1)=accuracyVec(1);
-%     accuracy(rpt,1)=svmModel;
-
-    svmModel=svmtrain(labelVec(randperm(length(labelVec))),instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
-    [~,accuracyVec,~]=svmpredict(testLabelVec,testMat,svmModel);
+    [~,accuracyVec,~]=svmpredict(testLabelVec,testMat,shufModel);
     accuracy(rpt,3)=accuracyVec(1);
-%     accuracy(rpt,3)=svmModel;
+    
 end
 end
+% 
+% function [test,template]=chooseKfromMultiN(spks,spksW_test,K,ts)
+% trialCounts=cellfun(@(x) size(x,2),spksW_test);
+% testIdx=arrayfun(@(x) randperm(x,1),trialCounts);
+% test=cell2mat(arrayfun(@(x) spksW_test{x}(:,testIdx(x),ts),1:length(testIdx),'UniformOutput',false)');
+% for i=1:length(testIdx)
+%     spksW_test{i}(:,testIdx(i),:)=[];
+% end
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%
+% % full or partial cross %
+% %%%%%%%%%%%%%%%%%%%%%%%%%
+% spks{length(spks)+1}=spksW_test;
+% 
+% suCount=cell2mat(arrayfun(@(y) ...
+%     cell2mat(cellfun(@(x) size(x,2),spks{y},'UniformOutput',false)),...
+%     1:length(spks),'UniformOutput',false));
+% template=[];
+% templateLabel=[];
+% for i=1:size(suCount,1)
+%     paired=cell2mat(arrayfun(@(x) [repmat(x,1,suCount(i,x));1:suCount(i,x)],1:size(suCount,2),'UniformOutput',false));
+%     idces=flexPerm(sum(suCount(i,:)),K);
+%     template=[template;...
+%         cell2mat(arrayfun(@(j) spks{paired(1,idces(j))}{i}(:,paired(2,idces(j)),ts),1:K,'UniformOutput',false))];
+%     templateLabel=[templateLabel;...
+%         ];
+% end
+% end
 
 
+function [test,template]=chooseKfromMultiN(spk,isTest,K,ts)
+trialCounts=cellfun(@(x) size(x,2),spk);
+if isTest
+    testIdx=arrayfun(@(x) randperm(x,1),trialCounts);
+    test=cell2mat(arrayfun(@(x) spk{x}(:,testIdx(x),ts),1:length(testIdx),'UniformOutput',false)');
+    for i=1:length(testIdx)
+        spk{i}(:,testIdx(i),:)=[];
+    end
+    trialCounts=trialCounts-1;
+end
+idces=arrayfun(@(x) flexPerm(x,K),trialCounts,'UniformOutput',false);
+template=cell2mat(arrayfun(@(x) spk{x}(:,idces{x},ts),(1:length(idces))','UniformOutput',false));
+end
 
 
 function out=flexPerm(n,k)
@@ -172,24 +171,7 @@ else
 end
 end
 
-function out=expand(in)
-if size(in,2)==2
-    in=in(:,[2 1]);
-end
-subTotal=sum(cellfun(@(x) size(x,1),in(:,1)));
-cIdx=1;
-out=cell(subTotal,1);
-for i=1:length(in)
-    for j=1:size(in{i,1},1)
-        if size(in,2)==1
-            out{cIdx}=in{i}(j,:,:);
-        else
-            out{cIdx}=[num2str(in{i,1}(j,:)),char(in{i,2})];
-        end
-        cIdx=cIdx+1;
-    end
-end
-end
+
 
 function pvShufOne=permTest(tsLen,accuracy,a,b,permRpt)
 pvShufOne=nan(1,tsLen+2);
@@ -204,165 +186,6 @@ for ts=3:tsLen
     end
     pvShufOne(ts)=nnz(shufDiff>=currDiff)/permRpt;
 end
-end
-
-function saveDNMSFile(delayLen,dataFile)
-delayLen=4;
-[spkCA,tagA]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,true,delayLen,true);
-[spkCB,tagB]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,false,delayLen,true);
-dataFile='4sDNMS.mat';
-
-spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)));
-tagA=tagA(ismember(tagA(:,1),tagB(:,1)),:);
-
-spkCB=spkCB(ismember(tagB(:,1),tagA(:,1)));
-tagB=tagB(ismember(tagB(:,1),tagA(:,1)),:);
-if ~all(strcmp(tagA(:,1),tagB(:,1)))
-    spkCA=[];
-    spkCB=[];
-    return
-end
-
-for i=1:size(tagA,1)
-    spkCA{i}=spkCA{i}(ismember(tagA{i,2},tagB{i,2},'rows'),:,:);
-    tagA{i,2}=tagA{i,2}(ismember(tagA{i,2},tagB{i,2},'rows'),:);
-end
-
-for i=1:size(tagB,1)
-    spkCB{i}=spkCB{i}(ismember(tagB{i,2},tagA{i,2},'rows'),:,:);
-    tagB{i,2}=tagB{i,2}(ismember(tagB{i,2},tagA{i,2},'rows'),:);
-end
-
-% 
-sel=(cellfun(@(x) size(x,2),spkCA)>30 & cellfun(@(x) size(x,2),spkCB)>30);
-% 
-spkCA=spkCA(sel);
-spkCB=spkCB(sel);
-tagA=tagA(sel,:);
-tagB=tagB(sel,:);
-
-save(dataFile,'spkCA','spkCB');
-end
-
-function saveDualFile(delayLen,dataFile)
-% 
-[spkCA,tagA]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,true,true);
-[spkCB,tagB]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,false,true);
-% 
-% [spkCA,tagA]=allByTypeDual('distrNone','Average2Hz',-2,0.5,20,true,true,'WJ');
-% [spkCB,tagB]=allByTypeDual('distrNone','Average2Hz',-2,0.5,20,false,true,'WJ');
-
-dataFile='8sDualNone.mat';
-
-spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)));
-tagA=tagA(ismember(tagA(:,1),tagB(:,1)),:);
-
-spkCB=spkCB(ismember(tagB(:,1),tagA(:,1)));
-tagB=tagB(ismember(tagB(:,1),tagA(:,1)),:);
-if ~all(strcmp(tagA(:,1),tagB(:,1)))
-    spkCA=[];
-    spkCB=[];
-    return
-end
-
-for i=1:size(tagA,1)
-    spkCA{i}=spkCA{i}(ismember(tagA{i,2},tagB{i,2},'rows'),:,:);
-    tagA{i,2}=tagA{i,2}(ismember(tagA{i,2},tagB{i,2},'rows'),:);
-end
-
-for i=1:size(tagB,1)
-    spkCB{i}=spkCB{i}(ismember(tagB{i,2},tagA{i,2},'rows'),:,:);
-    tagB{i,2}=tagB{i,2}(ismember(tagB{i,2},tagA{i,2},'rows'),:);
-end
-
-sel=(cellfun(@(x) size(x,2),spkCA)>15 & cellfun(@(x) size(x,2),spkCB)>15);
-
-spkCA=spkCA(sel);
-spkCB=spkCB(sel);
-
-save(dataFile,'spkCA','spkCB');
-
-fprintf('%d\n',sum(cellfun(@(x) size(x,1),spkCA)));
-end
-
-function combineDual(datafile13,datafile8)
-datafile13='13sDualNoGo.mat';datafile8='8sDualNoGo.mat';dataFile='CombinedDualNoGo.mat';
-fstr13=load(datafile13);
-fstr8=load(datafile8);
-
-a13=cellfun(@(x) x(:,:,[1:6,11:26,33:44]),fstr13.spkCA,'UniformOutput',false);
-a8=cellfun(@(x) x(:,:,[1:6,7:22,23:34]),fstr8.spkCA,'UniformOutput',false);
-spkCA=[a13;a8];
-
-b13=cellfun(@(x) x(:,:,[1:6,11:26,33:44]),fstr13.spkCB,'UniformOutput',false);
-b8=cellfun(@(x) x(:,:,[1:6,7:22,23:34]),fstr8.spkCB,'UniformOutput',false);
-spkCB=[b13;b8];
-
-
-save(dataFile,'spkCA','spkCB');
-
-end
-
-
-function saveErrorFile(delayLen,dataFile)
-delayLen=8;dataFile='8sDNMS_Err.mat';
-[spkCA,tagA]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,true,delayLen,true);
-[spkCB,tagB]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,false,delayLen,true);
-[errSpkCA,tagAE]=allByTypeDNMS('sampleerror','Average2Hz',-2,0.5,delayLen+7,true,delayLen,false);
-[errSpkCB,tagBE]=allByTypeDNMS('sampleerror','Average2Hz',-2,0.5,delayLen+7,false,delayLen,false);
-
-
-spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)) & ismember(tagA(:,1),tagAE(:,1)) & ismember(tagA(:,1),tagBE(:,1)));
-tagA=tagA(ismember(tagA(:,1),tagB(:,1)) & ismember(tagA(:,1),tagAE(:,1)) & ismember(tagA(:,1),tagBE(:,1)),:);
-
-spkCB=spkCB(ismember(tagB(:,1),tagA(:,1)) & ismember(tagB(:,1),tagAE(:,1)) & ismember(tagB(:,1),tagBE(:,1)));
-tagB=tagB(ismember(tagB(:,1),tagA(:,1)) & ismember(tagB(:,1),tagAE(:,1)) & ismember(tagB(:,1),tagBE(:,1)),:);
-
-errSpkCA=errSpkCA(ismember(tagAE(:,1),tagA(:,1)) & ismember(tagAE(:,1),tagB(:,1)) & ismember(tagAE(:,1),tagBE(:,1)));
-tagAE=tagAE(ismember(tagAE(:,1),tagA(:,1)) & ismember(tagAE(:,1),tagB(:,1)) & ismember(tagAE(:,1),tagBE(:,1)),:);
-
-errSpkCB=errSpkCB(ismember(tagBE(:,1),tagA(:,1)) & ismember(tagBE(:,1),tagB(:,1)) & ismember(tagBE(:,1),tagAE(:,1)));
-tagBE=tagBE(ismember(tagBE(:,1),tagA(:,1)) & ismember(tagBE(:,1),tagB(:,1)) & ismember(tagBE(:,1),tagAE(:,1)),:);
-
-
-if (~all(strcmp(tagA(:,1),tagB(:,1)))) || (~all(strcmp(tagA(:,1),tagAE(:,1)))) || (~all(strcmp(tagA(:,1),tagBE(:,1))))
-    spkCA=[];
-    spkCB=[];
-    errSpkCA=[];
-    errSpkCB=[];
-    return
-end
-
-for i=1:size(tagA,1)
-    spkCA{i}=spkCA{i}(ismember(tagA{i,2},tagB{i,2},'rows') & ismember(tagA{i,2},tagAE{i,2},'rows') & ismember(tagA{i,2},tagBE{i,2},'rows'),:,:);
-    tagA{i,2}=tagA{i,2}(ismember(tagA{i,2},tagB{i,2},'rows') & ismember(tagA{i,2},tagAE{i,2},'rows') & ismember(tagA{i,2},tagBE{i,2},'rows'),:);
-end
-
-for i=1:size(tagB,1)
-    spkCB{i}=spkCB{i}(ismember(tagB{i,2},tagA{i,2},'rows') & ismember(tagB{i,2},tagAE{i,2},'rows') & ismember(tagB{i,2},tagBE{i,2},'rows'),:,:);
-    tagB{i,2}=tagB{i,2}(ismember(tagB{i,2},tagA{i,2},'rows') & ismember(tagB{i,2},tagAE{i,2},'rows') & ismember(tagB{i,2},tagBE{i,2},'rows'),:);
-end
-
-for i=1:size(tagAE,1)
-    errSpkCA{i}=errSpkCA{i}(ismember(tagAE{i,2},tagA{i,2},'rows') & ismember(tagAE{i,2},tagB{i,2},'rows') & ismember(tagAE{i,2},tagBE{i,2},'rows'),:,:);
-    tagAE{i,2}=tagAE{i,2}(ismember(tagAE{i,2},tagA{i,2},'rows') & ismember(tagAE{i,2},tagB{i,2},'rows') & ismember(tagAE{i,2},tagBE{i,2},'rows'),:);
-end
-
-for i=1:size(tagBE,1)
-    errSpkCB{i}=errSpkCB{i}(ismember(tagBE{i,2},tagA{i,2},'rows') & ismember(tagBE{i,2},tagB{i,2},'rows') & ismember(tagBE{i,2},tagAE{i,2},'rows'),:,:);
-    tagBE{i,2}=tagBE{i,2}(ismember(tagBE{i,2},tagA{i,2},'rows') & ismember(tagBE{i,2},tagB{i,2},'rows') & ismember(tagBE{i,2},tagAE{i,2},'rows'),:);
-end
-
-sel=(cellfun(@(x) size(x,2),spkCA)>10 & cellfun(@(x) size(x,2),spkCB)>10 & cellfun(@(x) size(x,2),errSpkCA)>10 & cellfun(@(x) size(x,2),errSpkCB)>10);
-
-spkCA=spkCA(sel);
-spkCB=spkCB(sel);
-errSpkCA=errSpkCA(sel);
-errSpkCB=errSpkCB(sel);
-
-
-save(dataFile,'spkCA','spkCB','errSpkCA','errSpkCB');
-fprintf('%d\n',sum(cellfun(@(x) size(x,1),spkCA)));
 end
 
 
