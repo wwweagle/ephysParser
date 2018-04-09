@@ -27,3 +27,8 @@ delayLen=5;
 [spkCA,uniqTag]=allByTypeDNMS('sample','Average2Hz',-2,0.1,12,true,delayLen,false);
 [spkCB,~]=allByTypeDNMS('sample','Average2Hz',-2,0.1,12,false,delayLen,false);
 save('5sDNMSNaive.mat','spkCA','spkCB','uniqTag');
+
+
+[spkCA,uniqTag]=allByTypeDual('sample','Average2Hz',-2,0.1,15,true,true);
+[spkCB,~]=allByTypeDual('sample','Average2Hz',-2,0.1,15,false,true);
+save('dualAll.mat','spkCA','spkCB','uniqTag');

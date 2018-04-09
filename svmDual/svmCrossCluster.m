@@ -1,4 +1,6 @@
 function svmCrossCluster()
+% saveDualCrossoverFile('ImDualByDistr',0.1);
+% return
 
 %%%%%%%%onCluster%%%%%%%%%%
 % addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
@@ -186,20 +188,20 @@ end
 end
 
 
-function saveDualCrossoverFile()
+function saveDualCrossoverFile(outName,binSize)
 
-[spkCA,tagA]=allByTypeDual('sample','Average2Hz',-2,0.5,15,true,true);
-[spkCB,tagB]=allByTypeDual('sample','Average2Hz',-2,0.5,15,false,true);
+[spkCA,tagA]=allByTypeDual('sample','Average2Hz',-2,binSize,15,true,true);
+[spkCB,tagB]=allByTypeDual('sample','Average2Hz',-2,binSize,15,false,true);
 
-[spkCANone,tagANone]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,true,true);
-[spkCBNone,tagBNone]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,false,true);
+[spkCANone,tagANone]=allByTypeDual('distrNone','Average2Hz',-2,binSize,15,true,true);
+[spkCBNone,tagBNone]=allByTypeDual('distrNone','Average2Hz',-2,binSize,15,false,true);
 
 
-[spkCAGo,tagAGo]=allByTypeDual('distrGo','Average2Hz',-2,0.5,15,true,true);
-[spkCBGo,tagBGo]=allByTypeDual('distrGo','Average2Hz',-2,0.5,15,false,true);
+[spkCAGo,tagAGo]=allByTypeDual('distrGo','Average2Hz',-2,binSize,15,true,true);
+[spkCBGo,tagBGo]=allByTypeDual('distrGo','Average2Hz',-2,binSize,15,false,true);
 
-[spkCANogo,tagANogo]=allByTypeDual('distrNogo','Average2Hz',-2,0.5,15,true,true);
-[spkCBNogo,tagBNogo]=allByTypeDual('distrNogo','Average2Hz',-2,0.5,15,false,true);
+[spkCANogo,tagANogo]=allByTypeDual('distrNogo','Average2Hz',-2,binSize,15,true,true);
+[spkCBNogo,tagBNogo]=allByTypeDual('distrNogo','Average2Hz',-2,binSize,15,false,true);
 
 allTags={tagA,tagB,tagANone,tagBNone,tagAGo,tagBGo,tagANogo,tagBNogo};
 allSpks={spkCA,spkCB,spkCANone,spkCBNone,spkCAGo,spkCBGo,spkCANogo,spkCBNogo};
@@ -215,7 +217,7 @@ end
 
 sel=cellfun(@(x) size(x,2),allSpks{1})>15 & cellfun(@(x) size(x,2),allSpks{2})>15;
 
-save('dualCrossSVM.mat','allTags','allSpks','nameTags');
+save([outName,'.mat'],'allTags','allSpks','nameTags');
 fprintf('%d\n',sum(cellfun(@(x) size(x,1),spkCA)));
 end
 
