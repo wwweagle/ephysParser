@@ -1,19 +1,19 @@
 function svmCrossCluster()
 
 %%%%%%%%%onCluster%%%%%%%%%%
-% addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
-% decRpt=500;
-% permRpt=1000;
-
-%%%%%%%%%%local%%%%%%%%%
-addpath('R:\ZX\libsvm-3.22\windows\');
+addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
 decRpt=500;
 permRpt=1000;
+
+%%%%%%%%%%local%%%%%%%%%
+% addpath('R:\ZX\libsvm-3.22\windows\');
+% decRpt=50;
+% permRpt=100;
 
 % saveFile(delayLen,dataFile);
 
 instCount=30;
-dataFile='multiSamples.mat';
+dataFile='multiSamplesCross.mat';
 load(dataFile,'samples');
 delayLen=5;
 tsLen=(delayLen+8)*2;
@@ -23,10 +23,10 @@ grange=2.^(-13:0.5:-3);
 avgAccu=nan(length(crange),length(grange),length(3:tsLen),2);
 accuAll=nan(length(crange),length(grange),decRpt,3,tsLen+2);
 pvShufAll=nan(length(crange),length(grange),tsLen+2);
-for cIdx=1%:length(crange)
-    for gIdx=1%:length(grange)
-        c=crange(21);
-        g=grange(18);
+for cIdx=1:length(crange)
+    for gIdx=1:length(grange)
+        c=crange(cIdx);
+        g=grange(gIdx);
         accuracy=nan(decRpt,3,tsLen+2);
         
         futures=parallel.FevalFuture.empty(0,tsLen);

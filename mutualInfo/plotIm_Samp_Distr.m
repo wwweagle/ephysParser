@@ -31,3 +31,32 @@ for i=1:length(sampFstr.Im)
     print('-dpng',sprintf('ImDualSamp_Distr_%d.png',i));
     close(cf);
 end
+return;
+
+%%%%%%%%%%%Print significant sample im SUs%%%%%%%%%%%%%%%%
+for i=1:length(sampFstr.Im)
+    for j=1:length(sampFstr.Im{i,2})-4
+        if all(sampFstr.Im{i,2}(j:j+4)>0.1) && all(sampFstr.pCrossTime{i,2}(j:j+4)<0.01)
+            fprintf('%d,',i);
+            break;
+        end
+    end
+end
+
+% 2,10,39,47,48,65,85,92,94,98,100,108,122,137,153,176,177,178,180,181,183,198,213,218,223,
+
+%%%%%%%%%%%%%%%Plot additional Im Curve%%%%%%%%%%%%%%%%%%%
+sampFstr=load('ImDualAll8s.mat');
+distrFstr=load('Im8sDistr.mat');
+
+for i=153%1:length(sampFstr.Im)
+    xPos=[1:length(sampFstr.Im{i,2})]*0.1-1.75-0.1;
+    plot(xPos,distrFstr.Im{i,2},'-b','LineWidth',1);
+    for j=1:length(sampFstr.Im{i,2})-1
+        if all(distrFstr.pCrossTime{i,2}([j,j+1])<0.01)
+            plot(xPos([j,j+1]),[-0.075,-0.075],'-b','LineWidth',1);
+        end
+    end
+end
+set(gcf,'Color','w','Position',[100,100,250,180]);
+ylim([-0.1,0.72]);

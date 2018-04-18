@@ -432,11 +432,12 @@ binSize=0.5;
 none=sampleDualByType('distrNone','Average2Hz',-2,binSize,11,[100,0;100,0],1,1);
 nogo=sampleDualByType('distrNogo','Average2Hz',-2,binSize,11,[100,0;100,0],1,1);
 go=sampleDualByType('distrGo','Average2Hz',-2,binSize,11,[100,0;100,0],1,1);
-none13=sampleDualByType('distrNoneZ','Average2Hz',-2,binSize,16,[100,0;100,0],1,1,'WJ');
-nogo13=sampleDualByType('distrNogoZ','Average2Hz',-2,binSize,16,[100,0;100,0],1,1,'WJ');
-go13=sampleDualByType('distrGoZ','Average2Hz',-2,binSize,16,[100,0;100,0],1,1,'WJ');
-gendPCAFR([none;trans13(none13)], [nogo;trans13(nogo13)], [go;trans13(go13)])
+% none13=sampleDualByType('distrNoneZ','Average2Hz',-2,binSize,16,[100,0;100,0],1,1,'WJ');
+% nogo13=sampleDualByType('distrNogoZ','Average2Hz',-2,binSize,16,[100,0;100,0],1,1,'WJ');
+% go13=sampleDualByType('distrGoZ','Average2Hz',-2,binSize,16,[100,0;100,0],1,1,'WJ');
+% gendPCAFR([none;trans13(none13)], [nogo;trans13(nogo13)], [go;trans13(go13)])
 
+gendPCAFR(none, nogo, go);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,3 +1,6 @@
+[spkCA,tagA]=allByTypeDual('sample','Average2Hz',-2,0.5,15,true,true);
+[spkCB,tagB]=allByTypeDual('sample','Average2Hz',-2,0.5,15,false,true);
+
 [spkCANone,tagANone]=allByTypeDual('distrNone','Average2Hz',-2,0.1,15,true,true);
 [spkCBNone,tagBNone]=allByTypeDual('distrNone','Average2Hz',-2,0.1,15,false,true);
 

@@ -19,24 +19,23 @@ tag=cell(0,0);
 for f= 1:length(spkCA)
     for u=1:size(spkCA{f},1)
         fidx=fidx+1;
+        if fidx~=153
+            continue;
+        end
         tag{fidx}={uniqTag{f,1},uniqTag{f,2}(u,:)};
-        futures(fidx)=parfeval(@plotOne,2,spkCA,spkCB,f,u,outName);
-%         [a,b]=plotOne(spkCA,spkCB,f,u,outName);
+        %         futures(fidx)=parfeval(@plotOne,2,spkCA,spkCB,f,u,outName);
+        try
+            [ps,ims]=plotOne(spkCA,spkCB,f,u,outName);
+            %         [ps,ims]=fetchOutputs(futures(ffidx));
+            fprintf('%d,',ffidx);
+            pCrossTime=[pCrossTime;{tag{ffidx},ps}];
+            Im=[Im;{tag{ffidx},ims}];
+        catch ME
+            disp(fidx);
+            disp(ME.identifier);
+        end
     end
 end
-
-for ffidx=1:fidx
-    try
-        [ps,ims]=fetchOutputs(futures(ffidx));
-        fprintf('%d,',ffidx);
-        pCrossTime=[pCrossTime;{tag{ffidx},ps}];
-        Im=[Im;{tag{ffidx},ims}];
-    catch ME
-         disp(ffidx);
-         disp(ME.identifier);
-    end
-end
-
 save([outName,'.mat'],'pCrossTime','Im');
 
 
@@ -110,12 +109,10 @@ save([outName,'.mat'],'pCrossTime','Im');
         fprintf('new figure for %d %d',f,u);
         hold on;
         xPos=[1:length(curve)]*0.1-1.75-0.1;
-        
-        
         shufs=bootci(3,@(x) mean(x),imShuf);
         fill([xPos,fliplr(xPos)],[shufs(1,:),fliplr(shufs(2,:))],'k','FaceAlpha',0.2,'EdgeColor','none');
         plot(xPos,mean(shufs),'-k','LineWidth',1);
-        plot(xPos,curve,'-r.','LineWidth',1);
+        plot(xPos,curve,'-r','LineWidth',1);
         ylim([-0.1,1.1]);
         set(gca,'XTick',0:5:10);
         xlabel('Time (s)');
@@ -127,15 +124,19 @@ save([outName,'.mat'],'pCrossTime','Im');
         else
             arrayfun(plotTag,[0 1 5 6]);
         end
-        plot(xPos(pOne<0.01),-0.05,'k.');
+        for i=1:length(curve)-1
+            if max(pOne([i,i+1]))<0.01
+                plot(xPos([i,i+1]),[-0.05,-0.05],'-r','LineWidth',1);
+            end
+        end
         xlim([-1,11]);
         savefig(cf,[fnameTag,num2str(f*1000+u),'.fig'],'compact');
         print('-dpng',[fnameTag,num2str(f*1000+u),'.png']);
-        close(cf);
+%         close(cf);
     end
 
     function [pOne,curve]=plotOne(spkCA,spkCB,f,u,fnameTag)
-        shufRpt=5;
+        shufRpt=500;
         fprintf('plotOne, %d %d', f,u);
         curveLen=size(spkCA{1},3);
         curve=nan(1,curveLen-4);
@@ -149,9 +150,13 @@ save([outName,'.mat'],'pCrossTime','Im');
             aSpkCount=sum(spkCA{f}(u,:,winRange)*0.1,3);
             bSpkCount=sum(spkCB{f}(u,:,winRange)*0.1,3);
             curve(cidx)=calcIm(aSpkCount,bSpkCount);
-            imShuf(:,cidx)=genShuf(aSpkCount,bSpkCount,shufRpt);
+            tsFutures(cidx)=parfeval(@genShuf,1,aSpkCount,bSpkCount,shufRpt);
+        end
+        for cidx=1:curveLen-4
+            imShuf(:,cidx)= fetchOutputs(tsFutures(cidx));      
             pOne(cidx)=sum(abs(imShuf(:,cidx)-mean(imShuf(:,cidx)))>abs((curve(cidx)-mean(imShuf(:,cidx)))))/shufRpt;
         end
+        
         fprintf('before plot %d %d %s',f,u,fnameTag);
         plotFig(curve,imShuf,pOne,f,u,fnameTag);
     end

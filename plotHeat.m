@@ -22,11 +22,8 @@ classdef plotHeat < handle
             if obj.peri
                 xx=[2,2.5,3,3.5]*10/obj.binSize+0.5;
             end
-            for curX=1:length(xx)
-                line([xx(curX),xx(curX)],yspan,'LineStyle','-','LineWidth',1,'Color','w');
-            end
- 
-        end
+            arrayfun(@(curX) line([xx(curX),xx(curX)],yspan,'LineStyle','-','LineWidth',0.5,'Color','w'),1:length(xx));
+         end
         
         function [pfBins,bnBins]=getBins(obj,type,delay)
             switch type
@@ -87,7 +84,7 @@ classdef plotHeat < handle
             
 %             figure('Color','w','Position',[100,100,305,190]);
 %             figure('Color','w','Position',[100,100,220,250]);
-            figure('Color','w','Position',[100,100,285,235]);
+            figure('Color','w','Position',[100,100,160,235]);
             subplot('Position',[0.11,0.17,0.42,0.70]);
             %             hold on;
             if periDistr
@@ -114,8 +111,8 @@ classdef plotHeat < handle
 %             set(gca,'YTick',[50,100,110,250-119,300-119],'YTickLabel',[50,100,0,250,300]);
             
             [xtick,xtickLabel]=obj.getXTick(delay);
-            set(gca,'XTick',xtick+0.5,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
-            
+            set(gca,'YTick',[],'XTick',xtick+0.5,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
+            ylim([-1,158]);
             
             obj.plotOdorEdge(delay);
             colormap('jet');
@@ -127,7 +124,7 @@ classdef plotHeat < handle
 %             fill([10/obj.binSize+0.5,20/obj.binSize,20/obj.binSize,10/obj.binSize],[110*dy,110*dy,120*dy,120*dy],'r','EdgeColor','none');
 %             ylim(yspan);
 %             if strcmpi(type,'odor')
-                text(size(pfbins,2)/2,size(samples,1)*-0.09,'PF as sample','HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
+%                 text(size(pfbins,2)/2,size(samples,1)*-0.09,'PF as sample','HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
 %             elseif strcmpi(type,'correct')
 %                 text(35,size(samples,1)*-0.05,'Correct trials','HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
 %             end
@@ -154,10 +151,11 @@ classdef plotHeat < handle
             
             set(gca,'YTick',[],'XTick',xtick+0.5,'XTickLabel',xtickLabel,'TickDir','out','box','off','FontSize',10,'FontName','Helvetica');
             obj.plotOdorEdge(delay);
+            ylim([-1,158]);
             colormap('jet');
             
 %             if strcmpi(type,'odor')
-                text(size(bnbins,2)/2,size(samples,1)*-0.09,'BN as sample','HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
+%                 text(size(bnbins,2)/2,size(samples,1)*-0.09,'BN as sample','HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
 %             elseif strcmpi(type,'correct')
 %                 text(35,size(samples,1)*-0.05,'Incorrect trials','HorizontalAlignment','center','FontSize',10,'FontName','Helvetica');
 %             end

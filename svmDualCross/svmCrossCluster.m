@@ -1,16 +1,14 @@
 function svmCrossCluster()
-% saveDualCrossoverFile('ImDualByDistr',0.1);
-% return
 
 %%%%%%%%onCluster%%%%%%%%%%
-% addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
-% decRpt=500;
-% permRpt=1000;
-
-%%%%%%%%%%local%%%%%%%%%
-addpath('R:\ZX\libsvm-3.22\windows\');
+addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
 decRpt=500;
 permRpt=1000;
+
+% %%%%%%%%%%local%%%%%%%%%
+% addpath('R:\ZX\libsvm-3.22\windows\');
+% decRpt=5%00;
+% permRpt=10%00;
 
 instCount=30;
 load('dualCrossSVM.mat','allSpks');
@@ -18,20 +16,19 @@ delayLen=8;
 tsLen=(delayLen+8)*2;
 
 crange=2.^(-5:0.5:5);
-grange=2.^(-10:0.5:0);
+grange=2.^(-13:0.5:-3);
 
-
-avgAccu=nan(length(crange),length(grange),length(3:tsLen),2);
-accuracyAllAll=nan(length(crange),length(grange),decRpt,3,tsLen+2);
+avgAccu=nan(length(crange),length(grange),length(3:tsLen),3);
+accuAll=nan(length(crange),length(grange),decRpt,3,tsLen+2);
 pvShufAll=nan(length(crange),length(grange),tsLen+2);
 
 for cIdx=1:length(crange)
     for gIdx=1:length(grange)
+         c=crange(cIdx);
+         g=grange(gIdx);
         
-        c=crange(cIdx);
-        g=grange(gIdx);
-        accuracy=nan(decRpt,3,tsLen+2);
-
+        accuracyAll=nan(decRpt,length(allSpks)-2,(tsLen+2));
+        pvShufAll=nan(3,tsLen+2);
         futures=parallel.FevalFuture.empty(0,tsLen);
         for ts=3:tsLen
             futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,allSpks,decRpt,c,g);
@@ -42,7 +39,7 @@ for cIdx=1:length(crange)
             accuracyAll(:,:,ts)=fetchOutputs(futures(ts));
         end
         
-        for tIdx=5%:2:size(accuracyAll,2)
+        for tIdx=1:2:size(accuracyAll,2)
             accuracy=nan(decRpt,3,(tsLen+2));
             accuracy(:,[1 3],:)=accuracyAll(:,tIdx:tIdx+1,:);
 
@@ -68,16 +65,21 @@ for cIdx=1:length(crange)
             
             
             arrayfun(@(x) plot([x,x],ylim(),':k'),[1 2 delayLen+2 delayLen+3]*2+0.5);
-            set(gca,'XTick',[1:5:11]*2+0.5,'XTickLabel',0:5:10,'YTick',0.5:0.25:1);
+            set(gca,'XTick',[0:5:10]*2+0.5,'XTickLabel',0:5:10,'YTick',0.5:0.25:1);
             xlim([0,tsLen-6]);
             ylim([0.4,1]);
             xlabel('Time (s)');
             ylabel('Sample decoding accuracy');
             title(sprintf('%s, c@%.4f, g@%0.4f, n = %d',sprintf('dualCross %d ',tIdx),c,g,sum(cellfun(@(x) size(x,1),allSpks{1}))));
             print(sprintf('SVM%s_c%.4f_g%0.4f.png',sprintf('dualCross_%d_',tIdx),c,g),'-dpng');
-%             close(fh);
+             close(fh);
             avgAccu(cIdx,gIdx,:,(tIdx+1)/2)=mean(squeeze(accuracy(:,1,3:tsLen)));
+           
             pvShufAll((tIdx+1)/2,:)=pvShuf;
+            
+                        
+            accuAll(cIdx,gIdx,:,:,:)=accuracy;
+            pvShufAll(cIdx,gIdx,:)=pvShuf;
         end
         save('avgAccuCross','avgAccu');
         save('accuCross','accuracyAll','pvShufAll');
@@ -94,8 +96,20 @@ function accuracy=svmOneTSBin(ts,instCount,allSpks,decRpt,c,g)
 
 accuracy=nan(decRpt,length(allSpks)-2);
 for rpt=1:decRpt
+%     instPerSess=[cell2mat(arrayfun(@(y) cellfun(@(x) size(x,2),allSpks{y}),[3 5 7],'UniformOutput',false));
+%         cell2mat(arrayfun(@(y) cellfun(@(x) size(x,2),allSpks{y}),[4 6 8],'UniformOutput',false))];
+%     instIdces=cell(size(instPerSess,1),instCount+1);
+%     for i=1:size(instPerSess,1)
+%         idces=flexPerm(sum(instPerSess(i,:)),instCount+1)
+%         
+%     end
+%     
+%     instIdces=cell2mat(arrayfun(@(x) flexPerm(x,instCount+1),instPerSess,'UniformOutput',false));
+%   
+%     instMatRaw=[cell2mat(arrayfun(@(x) allSpks{1}{x}(:,instIdces(x,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false)),...
+%         cell2mat(arrayfun(@(x) allSpks{2}{x}(:,instIdces(x+size(instIdces,1)/2,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false))]';
 
-    for interest=7%:2:7
+    for interest=3:2:7
         noIntA=[3 5 7];
         noIntA(noIntA==interest)=[];
         noIntB=noIntA+1;
@@ -110,15 +124,15 @@ for rpt=1:decRpt
     labelVec=[ones(instCount,1);ones(instCount,1)*2];
     svmModel=svmtrain(labelVec,instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
     shufModel=svmtrain(labelVec(randperm(length(labelVec))),instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
-    
-    testMat=(testMatRaw-repmat(min(instMatRaw),2,1))./repmat(scale,2,1);
-    testMat(:,scale==0)=[];
-    testLabelVec=[1;2];
-    [prLbl,accuracyVec,~]=svmpredict(testLabelVec,testMat,svmModel);
-    rtnIdx=interest-2;
-    accuracy(rpt,rtnIdx)=accuracyVec(1);
-    [~,accuracyVec,~]=svmpredict(testLabelVec,testMat,shufModel);
-    accuracy(rpt,rtnIdx+1)=accuracyVec(1);
+
+        testMat=(testMatRaw-repmat(min(instMatRaw),2,1))./repmat(scale,2,1);
+        testMat(:,scale==0)=[];
+        testLabelVec=[1;2];
+        [prLbl,accuracyVec,~]=svmpredict(testLabelVec,testMat,svmModel);
+        rtnIdx=interest-2;
+        accuracy(rpt,rtnIdx)=accuracyVec(1);
+        [~,accuracyVec,~]=svmpredict(testLabelVec,testMat,shufModel);
+        accuracy(rpt,rtnIdx+1)=accuracyVec(1);
     end
 end
 end
@@ -154,10 +168,6 @@ test=cell2mat(arrayfun(@(x) spksW_test{x}(:,testIdx(x),ts),1:length(testIdx),'Un
 for i=1:length(testIdx)
     spksW_test{i}(:,testIdx(i),:)=[];
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%
-% full or partial cross %
-%%%%%%%%%%%%%%%%%%%%%%%%%
 spks{length(spks)+1}=spksW_test;
 
 suCount=cell2mat(arrayfun(@(y) ...
@@ -190,20 +200,20 @@ end
 end
 
 
-function saveDualCrossoverFile(outName,binSize)
+function saveDualCrossoverFile()
 
-[spkCA,tagA]=allByTypeDual('sample','Average2Hz',-2,binSize,15,true,true);
-[spkCB,tagB]=allByTypeDual('sample','Average2Hz',-2,binSize,15,false,true);
+[spkCA,tagA]=allByTypeDual('sample','Average2Hz',-2,0.5,15,true,true);
+[spkCB,tagB]=allByTypeDual('sample','Average2Hz',-2,0.5,15,false,true);
 
-[spkCANone,tagANone]=allByTypeDual('distrNone','Average2Hz',-2,binSize,15,true,true);
-[spkCBNone,tagBNone]=allByTypeDual('distrNone','Average2Hz',-2,binSize,15,false,true);
+[spkCANone,tagANone]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,true,true);
+[spkCBNone,tagBNone]=allByTypeDual('distrNone','Average2Hz',-2,0.5,15,false,true);
 
 
-[spkCAGo,tagAGo]=allByTypeDual('distrGo','Average2Hz',-2,binSize,15,true,true);
-[spkCBGo,tagBGo]=allByTypeDual('distrGo','Average2Hz',-2,binSize,15,false,true);
+[spkCAGo,tagAGo]=allByTypeDual('distrGo','Average2Hz',-2,0.5,15,true,true);
+[spkCBGo,tagBGo]=allByTypeDual('distrGo','Average2Hz',-2,0.5,15,false,true);
 
-[spkCANogo,tagANogo]=allByTypeDual('distrNogo','Average2Hz',-2,binSize,15,true,true);
-[spkCBNogo,tagBNogo]=allByTypeDual('distrNogo','Average2Hz',-2,binSize,15,false,true);
+[spkCANogo,tagANogo]=allByTypeDual('distrNogo','Average2Hz',-2,0.5,15,true,true);
+[spkCBNogo,tagBNogo]=allByTypeDual('distrNogo','Average2Hz',-2,0.5,15,false,true);
 
 allTags={tagA,tagB,tagANone,tagBNone,tagAGo,tagBGo,tagANogo,tagBNogo};
 allSpks={spkCA,spkCB,spkCANone,spkCBNone,spkCAGo,spkCBGo,spkCANogo,spkCBNogo};
@@ -219,7 +229,7 @@ end
 
 sel=cellfun(@(x) size(x,2),allSpks{1})>15 & cellfun(@(x) size(x,2),allSpks{2})>15;
 
-save([outName,'.mat'],'allTags','allSpks','nameTags');
+save('dualCrossSVM.mat','allTags','allSpks','nameTags');
 fprintf('%d\n',sum(cellfun(@(x) size(x,1),spkCA)));
 end
 

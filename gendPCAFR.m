@@ -3,18 +3,19 @@ binSize=0.5;
 % none=sampleDualByType('distrNone','Average2Hz',-2,binSize,11,[100,0;100,0],1,1);
 % nogo=sampleDualByType('distrNogo','Average2Hz',-2,binSize,11,[100,0;100,0],1,1);
 % go=sampleDualByType('distrGo','Average2Hz',-2,binSize,11,[100,0;100,0],1,1);
-binSize=0.5;
-lf=listF();
-MatchSample=sampleByType(lf.listDNMS4s,'matchSample','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
-NonMtSample=sampleByType(lf.listDNMS4s,'nonMatchSample','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
-MatchSampleError=sampleByType(lf.listDNMS4s,'matchSampleError','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
-NonMtSampleError=sampleByType(lf.listDNMS4s,'nonMatchSampleError','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
-
-byMatch={MatchSample,NonMtSample};
-
-firingRatesAverage=nan(size(MatchSample,1),2,3,10/binSize);
-
-
+% binSize=0.5;
+% lf=listF();
+% MatchSample=sampleByType(lf.listDNMS4s,'matchSample','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
+% NonMtSample=sampleByType(lf.listDNMS4s,'nonMatchSample','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
+% MatchSampleError=sampleByType(lf.listDNMS4s,'matchSampleError','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
+% NonMtSampleError=sampleByType(lf.listDNMS4s,'nonMatchSampleError','Average2Hz',-2,binSize,7,[100,0;100,0],1,1);
+% 
+% byMatch={MatchSample,NonMtSample};
+% 
+% firingRatesAverage=nan(size(MatchSample,1),2,3,10/binSize);
+% 
+% 
+byDistr={none,nogo,go};
 for s=1:2
     for d=1:3
         firingRatesAverage(:,s,d,:)=getBy_S_D(s,d);
@@ -45,8 +46,8 @@ margColours = [23 100 171; 187 20 25; 150 150 150; 114 97 171]/256;
 
 % Time events of interest (e.g. stimulus onset/offset, cues etc.)
 % They are marked on the plots with vertical lines
-time=binSize:binSize:10;
-timeEvents = [1,2,4,5.5];
+time=binSize:binSize:12;
+timeEvents = [1,2,4,4.5,5,5.5,10,11];
 
 
 
@@ -83,7 +84,7 @@ dpca_plot_zx(firingRatesAverage, W, V, @dpca_plot_default_zx, ...
 
     function data=getBy_S_D(s,d)
         data=byDistr{d};
-        bins=1/binSize+1:11/binSize;
+        bins=1/binSize+1:13/binSize;
         half=size(data,3)/2;
         if s==1
             data=data(:,bins);
