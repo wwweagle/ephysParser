@@ -1,4 +1,4 @@
-function svmCluster(delayLen,dataFile)
+function svmClusterCrossTime(delayLen,dataFile,cPowerRange)
 
 % 
 %  saveDualCrossoverFile();
@@ -29,45 +29,59 @@ if isW_Error
     errSpkCA=fstr.errSpkCA;
     errSpkCB=fstr.errSpkCB;
 end
-crange=2.^(-5:0.5:5);
-grange=2.^(-13:0.5:-3);
+crange=2.^(cPowerRange);%-5:5
 
-avgAccu=nan(length(crange),length(grange),length(3:tsLen),2);
-accuracyAll=nan(length(crange),length(grange),decRpt,3,(tsLen+2));
-pvShufAll=nan(length(crange),length(grange),3,(tsLen+2));
-for cIdx=1:length(crange)
-    for gIdx=1:length(grange)
-         c=crange(cIdx);
-         g=grange(gIdx);
+grange=2.^(-13:-3);
+
+avgAccu=nan(length(crange),length(grange),length(3:tsLen),length(3:tsLen),2);
+accuracyAll=nan(length(crange),length(grange),decRpt,3,(tsLen+2),(tsLen+2));
+% pvShufAll=nan(length(crange),length(grange),3,(tsLen+2),(tsLen+2));
+cList=randperm(length(crange));
+gList=randperm(length(grange));
+
+
+for cListIdx=1%:length(crange)
+    for gListIdx=1%:length(grange)
+        cIdx=cList(cListIdx);
+        gIdx=gList(gListIdx);
+%          c=crange(cIdx);
+%          g=grange(gIdx);
+        c=1;
+        g=0.0156;
          
          %cIdx=15, gIdx=8 for 4sDNMS
          %cIdx=10, gIdx=11 for 8sDNMS
          %cIdx=20, gIdx=6 for CombinedGo
          %cIdx=16, gIdx=12 for CombinedNoGo
          %cIdx=14, gIdx=14 for CombinedNone
-        accuracy=nan(decRpt,3,(tsLen+2));
+        accuracy=nan(decRpt,3,(tsLen+2),(tsLen+2));
         
-        futures=parallel.FevalFuture.empty(0,tsLen);
+        futures=parallel.FevalFuture.empty(0,tsLen,tsLen);
         for ts=3:tsLen
-            if isW_Error
-                futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g,isW_Error);
-            else
-                futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error);
+            for tsTest=3:tsLen
+                if isW_Error
+                    futures(ts,tsTest)=parfeval(@svmOneTSBin,1,ts,tsTest,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g,isW_Error);
+                else
+                    futures(ts,tsTest)=parfeval(@svmOneTSBin,1,ts,tsTest,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error);
+                end
+    %             accuracy(:,:,ts)=svmOneTSBin(ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error);
             end
-%             accuracy(:,:,ts)=svmOneTSBin(ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error);
         end
         
         for ts=3:tsLen
-            accuracy(:,:,ts)=fetchOutputs(futures(ts));
+            for tsTest=3:tsLen
+                accuracy(:,:,ts,tsTest)=fetchOutputs(futures(ts,tsTest));
+            end
         end
         % plot(mean(accuracy));
 %         accuracy=accu(randperm(1000,500),:,:);
-        pvShuf=nan(3,(tsLen+2));
-        pvShuf(1,:)=permTest(tsLen,accuracy,1,3,permRpt).*(tsLen-2);
-        if isW_Error
-            pvShuf(2,:)=permTest(tsLen,accuracy,2,3,permRpt).*(tsLen-2);
-            pvShuf(3,:)=permTest(tsLen,accuracy,1,2,permRpt).*(tsLen-2);
-        end
+        pvShuf=nan(3,(tsLen+2),(tsLen+2));
+        pvShuf(1,:,:)=permTest(tsLen,accuracy,1,3,permRpt).*(tsLen-2);
+
+%         if isW_Error
+%             pvShuf(2,:)=permTest(tsLen,accuracy,2,3,permRpt).*(tsLen-2);
+%             pvShuf(3,:)=permTest(tsLen,accuracy,1,2,permRpt).*(tsLen-2);
+%         end
         %         for ts=3:tsLen
         %             currDiff=abs(mean(accuracy(:,1,ts))-mean(accuracy(:,2,ts)));
         %             flat=@(x) x(:);
@@ -82,53 +96,63 @@ for cIdx=1:length(crange)
         
         %         disp(pvShuf);
         
-        fh=figure('Color','w','Position',[1000,100,250,180]);
+        fh=figure('Color','w','Position',[1000,100,320,250]);
         hold on;
-        ci=bootci(100,@mean,accuracy(:,1,3:tsLen));
-        if isW_Error
-            ciErr=bootci(100,@mean, accuracy(:,2,3:tsLen));
-        end
-        ciShuf=bootci(100,@mean, accuracy(:,3,3:tsLen));
-        fill([3:tsLen,tsLen:-1:3]-2,[ci(1,:),fliplr(ci(2,:))]./100,[1,0.8,0.8],'EdgeColor','none');
-        if isW_Error
-             fill([3:tsLen,tsLen:-1:3]-2,[ciErr(1,:),fliplr(ciErr(2,:))]./100,[0.8,0.8,1],'EdgeColor','none');
-        end
-        fill([3:tsLen,tsLen:-1:3]-2,[ciShuf(1,:),fliplr(ciShuf(2,:))]./100,[0.8,0.8,0.8],'EdgeColor','none');
-        plot(mean(squeeze(accuracy(:,1,3:tsLen)))./100,'-r','LineWidth',1);
-        if isW_Error
-             plot(mean(squeeze(accuracy(:,2,3:tsLen)))./100,'-b','LineWidth',1);
-        end
-        plot(mean(squeeze(accuracy(:,3,3:tsLen)))./100,'-k','LineWidth',1);
+%         ci=bootci(100,@mean,accuracy(:,1,3:tsLen));
+%         if isW_Error
+%             ciErr=bootci(100,@mean, accuracy(:,2,3:tsLen));
+%         end
+%         ciShuf=bootci(100,@mean, accuracy(:,3,3:tsLen));
+%         fill([3:tsLen,tsLen:-1:3]-2,[ci(1,:),fliplr(ci(2,:))]./100,[1,0.8,0.8],'EdgeColor','none');
+%         if isW_Error
+%              fill([3:tsLen,tsLen:-1:3]-2,[ciErr(1,:),fliplr(ciErr(2,:))]./100,[0.8,0.8,1],'EdgeColor','none');
+%         end
+%         fill([3:tsLen,tsLen:-1:3]-2,[ciShuf(1,:),fliplr(ciShuf(2,:))]./100,[0.8,0.8,0.8],'EdgeColor','none');
+%         plot(mean(squeeze(accuracy(:,1,3:tsLen)))./100,'-r','LineWidth',1);
+%         if isW_Error
+%              plot(mean(squeeze(accuracy(:,2,3:tsLen)))./100,'-b','LineWidth',1);
+%         end
+%         plot(mean(squeeze(accuracy(:,3,3:tsLen)))./100,'-k','LineWidth',1);
         
-        for i=3:tsLen-1
-%             fprintf('%.4f,',max(pvShuf(1,i:i+1)))
-            if max(pvShuf(1,i:i+1))<0.001
-                plot(i-2:i-1,[0.425,0.425],'-r','LineWidth',1);
-            end
-            if isW_Error
-             if max(pvShuf(2,i:i+1))<0.001
-                 plot(i-2:i-1,[0.45,0.45],'-b','LineWidth',1);
-             end
-             if max(pvShuf(3,i:i+1))<0.001
-                 plot(i-2:i-1,[0.475,0.475],'-k','LineWidth',1);
-             end
-            end
-        end
-        
-        
-        arrayfun(@(x) plot([x,x],ylim(),':k'),[1 2 delayLen+2 delayLen+3]*2+0.5);
-        set(gca,'XTick',[0:5:10]*2+0.5,'XTickLabel',0:5:10,'YTick',0.5:0.25:1);
+%         for i=3:tsLen-1
+% %             fprintf('%.4f,',max(pvShuf(1,i:i+1)))
+%             if max(pvShuf(1,i:i+1))<0.001
+%                 plot(i-2:i-1,[0.425,0.425],'-r','LineWidth',1);
+%             end
+%             if isW_Error
+%              if max(pvShuf(2,i:i+1))<0.001
+%                  plot(i-2:i-1,[0.45,0.45],'-b','LineWidth',1);
+%              end
+%              if max(pvShuf(3,i:i+1))<0.001
+%                  plot(i-2:i-1,[0.475,0.475],'-k','LineWidth',1);
+%              end
+%             end
+%         end
+        myCmap=colormap('parula');
+        myCmap(1,:)=[0,0,0.5];
+        imData=squeeze(mean(accuracy(:,1,3:tsLen,3:tsLen)))./100;
+        pData=squeeze(pvShuf(1,3:tsLen,3:tsLen));
+        imData(pData>0.01)=0;
+        imagesc(imData,[0.5,0.8]);
+        colormap(myCmap);
+        colorbar();
+        arrayfun(@(x) plot([x,x],[0,tsLen-6],':w'),[1 2 4 5.5 delayLen+2 delayLen+3]*2+0.5);
+        arrayfun(@(y) plot([0,tsLen-6],[y,y],':w'),[1 2 4 5.5 delayLen+2 delayLen+3]*2+0.5);
+        set(gca,'XTick',[0:5:10]*2+0.5,'XTickLabel',0:5:10,'YTick',[0:5:10]*2+0.5,'YTickLabel',0:5:10,'TickDir','out');
         xlim([0,tsLen-6]);
-        ylim([0.4,1]);
-        xlabel('Time (s)');
-        ylabel('Sample decoding accuracy');
-        title(sprintf('%s, c@%.4f, g@%0.4f, n = %d',strrep(dataFile,'.mat',''),c,g,sum(cellfun(@(x) size(x,1),spkCA))));
-        print(sprintf('SVM%s_c%.4f_g%0.4f.png',dataFile,c,g),'-dpng');
-         close(fh);
-        avgAccu(cIdx,gIdx,:,1)=mean(squeeze(accuracy(:,1,3:tsLen)));
-        avgAccu(cIdx,gIdx,:,2)=mean(squeeze(accuracy(:,2,3:tsLen)));
-        accuracyAll(cIdx,gIdx,:,:,:)=accuracy;
-        pvShufAll(cIdx,gIdx,:,:)=pvShuf;
+        ylim([0,tsLen-6]);
+%         ylim([0.4,1]);
+        xlabel('Test time-bin (s)');
+        ylabel('Training time-bin (s)');
+%         ylabel('Sample decoding accuracy');
+%         title(sprintf('%s, c@%.4f, g@%0.4f, n = %d',strrep(dataFile,'.mat',''),c,g,sum(cellfun(@(x) size(x,1),spkCA))));
+        print(sprintf('timeVarSVM%s_c%.4f_g%0.4f.png',dataFile,c,g),'-dpng');
+        savefig(sprintf('timeVarSVM%s_c%.4f_g%0.4f.fig',dataFile,c,g));
+%         close(fh);
+        avgAccu(cIdx,gIdx,:,:,1)=mean(squeeze(accuracy(:,1,3:tsLen,3:tsLen)));
+%         avgAccu(cIdx,gIdx,:,2)=mean(squeeze(accuracy(:,2,3:tsLen)));
+        accuracyAll(cIdx,gIdx,:,:,:,:)=accuracy;
+        pvShufAll(cIdx,gIdx,:,:)=pvShuf(1,:,:);
         save(sprintf('avgAccu%s',dataFile),'avgAccu');
         save(sprintf('Accu%s',dataFile),'accuracyAll','pvShufAll');
     end
@@ -139,7 +163,7 @@ end
 
 
 
-function accuracy=svmOneTSBin(ts,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g,isW_Error)
+function accuracy=svmOneTSBin(ts,tsTest,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g,isW_Error)
 accuracy=nan(decRpt,3);
 for rpt=1:decRpt
     instPerSess=[cellfun(@(x) size(x,2),spkCA); cellfun(@(x) size(x,2), spkCB)];
@@ -153,8 +177,8 @@ for rpt=1:decRpt
     instMatRaw=[cell2mat(arrayfun(@(x) spkCA{x}(:,instIdces(x,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false)),...
         cell2mat(arrayfun(@(x) spkCB{x}(:,instIdces(x+size(instIdces,1)/2,:),ts),(1:size(instIdces,1)/2)','UniformOutput',false))]';
     
-    testMatRaw=[cell2mat(arrayfun(@(x) spkCA{x}(:,testInstIdces(x,:),ts),(1:size(testInstIdces,1)/2)','UniformOutput',false)),...
-        cell2mat(arrayfun(@(x) spkCB{x}(:,testInstIdces(x+size(testInstIdces,1)/2,:),ts),(1:size(testInstIdces,1)/2)','UniformOutput',false))]';
+    testMatRaw=[cell2mat(arrayfun(@(x) spkCA{x}(:,testInstIdces(x,:),tsTest),(1:size(testInstIdces,1)/2)','UniformOutput',false)),...
+        cell2mat(arrayfun(@(x) spkCB{x}(:,testInstIdces(x+size(testInstIdces,1)/2,:),tsTest),(1:size(testInstIdces,1)/2)','UniformOutput',false))]';
     
     errTestMatRaw=[cell2mat(arrayfun(@(x) errSpkCA{x}(:,errTestIdces(x),ts),(1:size(errTestIdces,1)/2)','UniformOutput',false)),...
         cell2mat(arrayfun(@(x) errSpkCB{x}(:,errTestIdces(x+size(errTestIdces,1)/2),ts),(1:size(errTestIdces,1)/2)','UniformOutput',false))]';
@@ -231,17 +255,19 @@ end
 end
 
 function pvShufOne=permTest(tsLen,accuracy,a,b,permRpt)
-pvShufOne=nan(1,tsLen+2);
+pvShufOne=nan(tsLen+2,tsLen+2);
 for ts=3:tsLen
-    currDiff=abs(mean(accuracy(:,a,ts))-mean(accuracy(:,b,ts)));
-    flat=@(x) x(:);
-    pool=flat(accuracy(:,[a b],ts));
-    shufDiff=nan(permRpt);
-    for rpt=1:permRpt
-        sPool=pool(randperm(length(pool)));
-        shufDiff(rpt)=abs(mean(sPool(1:size(accuracy,1)))-mean(sPool(size(accuracy,1)+1:end)));
+    for tsTest=3:tsLen
+        currDiff=abs(mean(accuracy(:,a,ts,tsTest))-mean(accuracy(:,b,ts,tsTest)));
+        flat=@(x) x(:);
+        pool=flat(accuracy(:,[a b],ts,tsTest));
+        shufDiff=nan(1,permRpt);
+        for rpt=1:permRpt
+            sPool=pool(randperm(length(pool)));
+            shufDiff(rpt)=abs(mean(sPool(1:size(accuracy,1)))-mean(sPool(size(accuracy,1)+1:end)));
+        end
+        pvShufOne(ts,tsTest)=nnz(shufDiff>=currDiff)/permRpt;
     end
-    pvShufOne(ts)=nnz(shufDiff>=currDiff)/permRpt;
 end
 end
 
