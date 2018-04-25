@@ -32,14 +32,14 @@ end
 
 perfPerMice=cell2mat(arrayfun(@(y) mean(cell2mat(cellfun(@(x) x(1:11),perf{y}(:,1),'UniformOutput',false))),find(~cellfun('isempty',perf)),'UniformOutput',false))';
 
-figure('Color','w','Position',[100,100,120,230]);
+figure('Color','w','Position',[100,100,240,240]);
 hold on;
 plot(perfPerMice,'-','Color',[0.8,0.8,0.8],'LineWidth',1);
 plot(mean(perfPerMice,2),'-k','LineWidth',1.5);
 ylabel('Correct Rate (%)');
 xlabel('Trials in Session');
-xlim([1,11]);
-set(gca,'XTick',1:5:11,'XTickLabel',0:100:200);
+xlim([0.5,11]);
+set(gca,'XTick',0.5:5:11,'XTickLabel',0:100:200);
 
 % perf=perf(~cellfun('isempty',perf));
 % figure();

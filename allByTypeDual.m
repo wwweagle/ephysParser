@@ -1,4 +1,4 @@
-function [out,sequence] = allByTypeDual(grpBy, criteria,binStart,binSize,binEnd,isS1,welltrained,WJ) %SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
+function [out,sequence,evts] = allByTypeDual(grpBy, criteria,binStart,binSize,binEnd,isS1,welltrained,WJ) %SampleSize=[PFSampleSize1,PFSampleSize2;BNSampleSize1,BNSampleSize2];
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -17,7 +17,7 @@ function [out,sequence] = allByTypeDual(grpBy, criteria,binStart,binSize,binEnd,
 %     end
 
 
-seqIdx=1;
+
 path(path,'r:\ZX\Tools\Matlab Offline Files SDK\')
 dp=javaclasspath('-dynamic');
 if ~ismember('R:\ZX\java\spk2fr\build\classes',dp)
@@ -40,8 +40,9 @@ clear dp;
 
 para.setFormat('DualAllfr');
 
-out=[];
-sequence=cell(0,0);
+% out=[];
+% sequence=cell(0,0);
+% evts=cell(0,0);
 fl=listF();
 if exist('WJ','var') && strcmp(WJ,'WJ')
     fileList=fl.listTrialFWJ();
@@ -60,6 +61,8 @@ if size(fileList,1)>0
   
     out=cell(0,0);
     sequence=cell(0,0);
+    seqIdx=1;
+    evts=cell(0,0);
     for fidx=1:length(futures)
         combo=futures(fidx).get();
         if ~isempty(combo)
@@ -68,7 +71,9 @@ if size(fileList,1)>0
                 out{seqIdx,1}=tmp;
                 sequence(seqIdx,1)=strtrim(fileList(fidx,:));
                 sequence{seqIdx,2}=combo.getKeyIdx();
+                evts{seqIdx,1}=combo.getEvts();
                 seqIdx=seqIdx+1;
+                
             end
         end
         waitbar(fidx/length(futures),h,[num2str(fidx),'/',num2str(length(futures))]);

@@ -12,24 +12,26 @@ for f= 1:length(allSpks{1})
     for u=1:size(allSpks{1}{f},1)
         fidx=fidx+1;
         tag{fidx}={uniqTag{f,1},uniqTag{f,2}(u,:)};
-        futures(fidx)=parfeval(@plotOne,2,allSpks,f,u,outName);
+%         futures(fidx)=parfeval(@plotOne,2,allSpks,f,u,outName);
 %         [a,b]=plotOne(allSpks,f,u,outName);
+%     end
+% end
+
+% for ffidx=1:fidx
+%     try
+%         [ps,ims]=fetchOutputs(futures(ffidx));
+        
+        [ps,ims]=plotOne(allSpks,f,u,outName);
+        pCrossTime=[pCrossTime;{tag{fidx},ps}];
+        Im=[Im;{tag{fidx},ims}];
+        save([outName,'.mat'],'pCrossTime','Im');
+%     catch ME
+%          disp(ffidx);
+%          disp(ME.identifier);
     end
 end
 
-for ffidx=1:fidx
-    try
-        [ps,ims]=fetchOutputs(futures(ffidx));
-        fprintf('%d,',ffidx);
-        pCrossTime=[pCrossTime;{tag{ffidx},ps}];
-        Im=[Im;{tag{ffidx},ims}];
-    catch ME
-         disp(ffidx);
-         disp(ME.identifier);
-    end
-end
 
-save([outName,'.mat'],'pCrossTime','Im');
 
 
 
@@ -117,7 +119,7 @@ save([outName,'.mat'],'pCrossTime','Im');
         fill([xPos,fliplr(xPos)],[shufs(1,:),fliplr(shufs(2,:))],'k','FaceAlpha',0.2,'EdgeColor','none');
         plot(xPos,mean(shufs),'-k','LineWidth',1);
         plot(xPos,curve,'-r.','LineWidth',1);
-        ylim([-0.1,1.1]);
+%         ylim([-0.1,1.1]);
         set(gca,'XTick',0:5:10);
         xlabel('Time (s)');
         ylabel('Mutual Info (bits)');
@@ -125,18 +127,25 @@ save([outName,'.mat'],'pCrossTime','Im');
         plotTag=@(x) plot([x,x],[-1,1],':k','LineWidth',0.5);
         if contains(inName,'8s','IgnoreCase',true) || contains(outName,'8s','IgnoreCase',true) 
             arrayfun(plotTag,[0 1 3 3.5 4 4.5 9 10]);
+            xlim([-1,11]);
+        elseif contains(inName,'5s','IgnoreCase',true) || contains(outName,'5s','IgnoreCase',true) 
+            arrayfun(plotTag,[0 1 6 7]);
+            xlim([-1,8]);
         else
             arrayfun(plotTag,[0 1 5 6]);
+            xlim([-1,7]);
         end
         plot(xPos(pOne<0.01),-0.05,'k.');
-        xlim([-1,11]);
+        ylim([-0.1,max(ylim())]);
         savefig(cf,[fnameTag,num2str(f*1000+u),'.fig'],'compact');
         print('-dpng',[fnameTag,num2str(f*1000+u),'.png']);
         close(cf);
     end
 
     function [pOne,curve]=plotOne(allSpks,f,u,fnameTag)
+        %%%%%%%%%%%%%%%%%%
         shufRpt=500;
+        %%%%%%%%%%%%%%%%%%%%
         fprintf('plotOne, %d %d', f,u);
         curveLen=size(allSpks{1}{1},3);
         curve=nan(1,curveLen-4);
@@ -146,13 +155,19 @@ save([outName,'.mat'],'pCrossTime','Im');
         for windowCenter=3:curveLen-2
             %calc
             cidx=windowCenter-2;
-             fprintf('%d, ',cidx);
+%              fprintf('%d, ',cidx);
             winRange=(cidx):(windowCenter+2);
             for sampIdx=1:length(spkCounts)
                 spkCounts{sampIdx}=sum(allSpks{sampIdx}{f}(u,:,winRange)*0.1,3);
             end
             curve(cidx)=calcIm(spkCounts);
-            imShuf(:,cidx)=genShuf(spkCounts,shufRpt);
+%             imShuf(:,cidx)=genShuf(spkCounts,shufRpt);
+            futures(cidx)=parfeval(@genShuf,1,spkCounts,shufRpt);
+        end
+        for windowCenter=3:curveLen-2
+            cidx=windowCenter-2;
+            fprintf('%d,',cidx);
+            imShuf(:,cidx)=fetchOutputs(futures(cidx));
             pOne(cidx)=sum(abs(imShuf(:,cidx)-mean(imShuf(:,cidx)))>abs((curve(cidx)-mean(imShuf(:,cidx)))))/shufRpt;
         end
         fprintf('before plot %d %d %s',f,u,fnameTag);

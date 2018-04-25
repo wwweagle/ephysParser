@@ -1,32 +1,34 @@
-function svmCrossCluster()
+function svmCluster()
 
 %%%%%%%%%onCluster%%%%%%%%%%
-% addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
-% decRpt=500;
-% permRpt=1000;
-
-%%%%%%%%%%local%%%%%%%%%
-addpath('R:\ZX\libsvm-3.22\windows\');
+addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
 decRpt=500;
 permRpt=1000;
+
+%%%%%%%%%%local%%%%%%%%%
+% addpath('R:\ZX\libsvm-3.22\windows\');
+% decRpt=50;
+% permRpt=100;
 
 % saveFile(delayLen,dataFile);
 
 instCount=30;
-dataFile='multiSamplesCross.mat';
+dataFile='multiSamples.mat';
 load(dataFile,'samples');
 delayLen=5;
 tsLen=(delayLen+8)*2;
-crange=2.^(-5:0.5:5);
-grange=2.^(-13:0.5:-3);
+crange=2.^(-6:2:6);
+grange=2.^(-12:2:0);
+
+%crange=2.^(-5:0.5:5);
+%grange=2.^(-13:0.5:-3);
+
 
 avgAccu=nan(length(crange),length(grange),length(3:tsLen),2);
 accuAll=nan(length(crange),length(grange),decRpt,3,tsLen+2);
 pvShufAll=nan(length(crange),length(grange),tsLen+2);
-for cIdx=1%:length(crange)
-    for gIdx=1%:length(grange)
-        cIdx=20;
-        gIdx=16;
+for cIdx=1:length(crange)
+    for gIdx=1:length(grange)
         c=crange(cIdx);
         g=grange(gIdx);
         accuracy=nan(decRpt,3,tsLen+2);
@@ -64,7 +66,7 @@ for cIdx=1%:length(crange)
         end
         
         
-        arrayfun(@(x) plot([x,x],[0,1],':k'),[1 2 delayLen+2 delayLen+3]*2+0.5);
+        arrayfun(@(x) plot([x,x],ylim(),':k'),[1 2 delayLen+2 delayLen+3]*2+0.5);
         set(gca,'XTick',[1:5:11]*2+0.5,'XTickLabel',0:5:10,'YTick',0:0.5:1);
         xlim([0,tsLen-6]);
         ylim([0,1]);
@@ -89,39 +91,25 @@ function accuracy=svmOneTSBin(ts,instCount,allSpks,decRpt,c,g)
 
 accuracy=nan(decRpt,3);
 for rpt=1:decRpt
-    grpA=[1 4 6];
-    grpB=[2 3 5];
-    testIdxA=grpA(randperm(3,1));
-    testIdxB=grpB(randperm(3,1));
-    
-    sampleIdces=1:6;
-    sampleIdces(ismember(sampleIdces,[testIdxA,testIdxB]))=[];
-
-    test=cell(1,2);
-    template=cell(1,5);
-    
-    [test{1},~]=chooseKfromMultiN(allSpks{testIdxA},true,1,ts);
-    [test{2},~]=chooseKfromMultiN(allSpks{testIdxB},true,1,ts);
-    for sampIdx=1:4
-        [~,template{sampIdx}]=chooseKfromMultiN(allSpks{sampleIdces(sampIdx)},false,instCount,ts);
+    test=cell(1,6);
+    template=cell(1,6);
+    for sampIdx=1:6
+        [test{sampIdx},template{sampIdx}]=chooseKfromMultiN(allSpks{sampIdx},true,instCount,ts);
     end
     
     instMatRaw=cell2mat(template)';
     testMatRaw=cell2mat(test)';
-
-    scale=(max(instMatRaw)-min(instMatRaw));
-    instMat=(instMatRaw-repmat(min(instMatRaw),instCount*4,1))./repmat(scale,instCount*4,1);
-    instMat(:,scale==0)=[];
-    labelVec=cell2mat(arrayfun(@(x) repmat(x,instCount,1),(ismember(sampleIdces,[1 4 6])+1)','UniformOutput',false));
     
+    scale=(max(instMatRaw)-min(instMatRaw));
+    instMat=(instMatRaw-repmat(min(instMatRaw),instCount*6,1))./repmat(scale,instCount*6,1);
+    instMat(:,scale==0)=[];
+    labelVec=cell2mat(arrayfun(@(x) repmat(x,instCount,1),(1:6)','UniformOutput',false));
     svmModel=svmtrain(labelVec,instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
     shufModel=svmtrain(labelVec(randperm(length(labelVec))),instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
     
-    testMat=(testMatRaw-repmat(min(instMatRaw),2,1))./repmat(scale,2,1);
+    testMat=(testMatRaw-repmat(min(instMatRaw),6,1))./repmat(scale,6,1);
     testMat(:,scale==0)=[];
-    testLabelVec=[1;2];
-    
-    
+    testLabelVec=(1:6)';
     [prLbl,accuracyVec,~]=svmpredict(testLabelVec,testMat,svmModel);
     accuracy(rpt,1)=accuracyVec(1);
     [~,accuracyVec,~]=svmpredict(testLabelVec,testMat,shufModel);
@@ -129,7 +117,34 @@ for rpt=1:decRpt
     
 end
 end
-
+% 
+% function [test,template]=chooseKfromMultiN(spks,spksW_test,K,ts)
+% trialCounts=cellfun(@(x) size(x,2),spksW_test);
+% testIdx=arrayfun(@(x) randperm(x,1),trialCounts);
+% test=cell2mat(arrayfun(@(x) spksW_test{x}(:,testIdx(x),ts),1:length(testIdx),'UniformOutput',false)');
+% for i=1:length(testIdx)
+%     spksW_test{i}(:,testIdx(i),:)=[];
+% end
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%
+% % full or partial cross %
+% %%%%%%%%%%%%%%%%%%%%%%%%%
+% spks{length(spks)+1}=spksW_test;
+% 
+% suCount=cell2mat(arrayfun(@(y) ...
+%     cell2mat(cellfun(@(x) size(x,2),spks{y},'UniformOutput',false)),...
+%     1:length(spks),'UniformOutput',false));
+% template=[];
+% templateLabel=[];
+% for i=1:size(suCount,1)
+%     paired=cell2mat(arrayfun(@(x) [repmat(x,1,suCount(i,x));1:suCount(i,x)],1:size(suCount,2),'UniformOutput',false));
+%     idces=flexPerm(sum(suCount(i,:)),K);
+%     template=[template;...
+%         cell2mat(arrayfun(@(j) spks{paired(1,idces(j))}{i}(:,paired(2,idces(j)),ts),1:K,'UniformOutput',false))];
+%     templateLabel=[templateLabel;...
+%         ];
+% end
+% end
 
 
 function [test,template]=chooseKfromMultiN(spk,isTest,K,ts)
@@ -141,8 +156,6 @@ if isTest
         spk{i}(:,testIdx(i),:)=[];
     end
     trialCounts=trialCounts-1;
-else
-    test=nan;
 end
 idces=arrayfun(@(x) flexPerm(x,K),trialCounts,'UniformOutput',false);
 template=cell2mat(arrayfun(@(x) spk{x}(:,idces{x},ts),(1:length(idces))','UniformOutput',false));

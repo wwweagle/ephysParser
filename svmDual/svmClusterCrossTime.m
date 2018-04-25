@@ -96,7 +96,7 @@ for cListIdx=1%:length(crange)
         
         %         disp(pvShuf);
         
-        fh=figure('Color','w','Position',[1000,100,320,250]);
+        fh=figure('Color','w','Position',[1000,100,260,195]);
         hold on;
 %         ci=bootci(100,@mean,accuracy(:,1,3:tsLen));
 %         if isW_Error
@@ -128,19 +128,20 @@ for cListIdx=1%:length(crange)
 %              end
 %             end
 %         end
-        myCmap=colormap('parula');
-        myCmap(1,:)=[0,0,0.5];
+%         myCmap=colormap('parula');
+%         myCmap(1,:)=[0,0,0.5];
         imData=squeeze(mean(accuracy(:,1,3:tsLen,3:tsLen)))./100;
         pData=squeeze(pvShuf(1,3:tsLen,3:tsLen));
-        imData(pData>0.01)=0;
-        imagesc(imData,[0.5,0.8]);
-        colormap(myCmap);
+        imData(pData>0.05)=0.5;
+        imagesc(imData,[0.25,0.75]);
+%         colormap(myCmap);
+        colormap('jet');
         colorbar();
-        arrayfun(@(x) plot([x,x],[0,tsLen-6],':w'),[1 2 4 5.5 delayLen+2 delayLen+3]*2+0.5);
-        arrayfun(@(y) plot([0,tsLen-6],[y,y],':w'),[1 2 4 5.5 delayLen+2 delayLen+3]*2+0.5);
-        set(gca,'XTick',[0:5:10]*2+0.5,'XTickLabel',0:5:10,'YTick',[0:5:10]*2+0.5,'YTickLabel',0:5:10,'TickDir','out');
-        xlim([0,tsLen-6]);
-        ylim([0,tsLen-6]);
+        arrayfun(@(x) plot([x,x],[0,tsLen],':w'),[1 2 4 5.5 delayLen+2 delayLen+3]*2+0.5);
+        arrayfun(@(y) plot([0,tsLen],[y,y],':w'),[1 2 4 5.5 delayLen+2 delayLen+3]*2+0.5);
+        set(gca,'XTick',[0:5:10]*2+1,'XTickLabel',0:5:10,'YTick',[0:5:10]*2+1,'YTickLabel',0:5:10,'TickDir','out');
+        xlim([0.5,tsLen-6.5]);
+        ylim([0.5,tsLen-6.5]);
 %         ylim([0.4,1]);
         xlabel('Test time-bin (s)');
         ylabel('Training time-bin (s)');

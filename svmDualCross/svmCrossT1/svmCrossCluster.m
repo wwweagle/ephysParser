@@ -1,14 +1,16 @@
 function svmCrossCluster()
 
+
+
 %%%%%%%%onCluster%%%%%%%%%%
-addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
-decRpt=500;
-permRpt=1000;
+% addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
+% decRpt=500;
+% permRpt=1000;
 
 % %%%%%%%%%%local%%%%%%%%%
-% addpath('R:\ZX\libsvm-3.22\windows\');
-% decRpt=5%00;
-% permRpt=10%00;
+addpath('R:\ZX\libsvm-3.22\windows\');
+decRpt=500;
+permRpt=1000;
 
 instCount=30;
 load('dualCrossSVM.mat','allSpks');
@@ -71,7 +73,7 @@ for cIdx=1%:length(crange)
             title(sprintf('%s, c@%.4f, g@%0.4f, n = %d',sprintf('dualCross %d ',tIdx),c,g,sum(cellfun(@(x) size(x,1),allSpks{1}))));
             print(sprintf('SVM%s_c%.4f_g%0.4f.png',sprintf('dualCross_%d_',tIdx),c,g),'-dpng');
             savefig(sprintf('SVM%s_c%.4f_g%0.4f.fig',sprintf('dualCross_%d_',tIdx),c,g));
-            close(fh);
+%             close(fh);
             avgAccu(cIdx,gIdx,:,(tIdx+1)/2)=mean(squeeze(accuracy(:,1,3:tsLen)));
             pvShufAll((tIdx+1)/2,:)=pvShuf;
         end
@@ -226,6 +228,9 @@ sel=cellfun(@(x) size(x,2),allSpks{1})>15 & cellfun(@(x) size(x,2),allSpks{2})>1
 save('dualCrossSVM.mat','allTags','allSpks','nameTags');
 fprintf('%d\n',sum(cellfun(@(x) size(x,1),spkCA)));
 end
+
+
+
 
 function [spks,tags]=matchTag(spks,tags,idx)
 tempTag=true(length(tags{idx}),1);

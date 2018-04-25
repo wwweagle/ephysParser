@@ -22,12 +22,18 @@ for f=1:size(flist,1)
 
 end
 for ffidx=1:fidx
+    try
     [isEmpty,FRDataNew,keyIdxNew]=fetchOutputs(futures(ffidx));
-    if ~isEmpty
-        FRData=[FRData;FRDataNew];
-        keyIdx=[keyIdx;keyIdxNew];
-    else
-        fprintf('Error  in file %d\n',flog(ffidx));
+        if ~isEmpty
+            FRData=[FRData;FRDataNew];
+            keyIdx=[keyIdx;keyIdxNew];
+        else
+            fprintf('Error  in file %d\n',flog(ffidx));
+        end
+    
+    catch ME
+         disp(ffidx);
+         disp(ME.identifier);
     end
 end
 
