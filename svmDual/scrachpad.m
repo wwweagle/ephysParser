@@ -43,5 +43,101 @@ uniqTag=allTags{3};
 save('ImDualByDistrCombined.mat','allSpks','uniqTag');
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% naive welltrain comparison
 
+delayLen=5;
+[spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,12,true,delayLen,false);
+[spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,12,false,delayLen,false);
+spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)));
+tagA=tagA(ismember(tagA(:,1),tagB(:,1)),:);
+spkCB=spkCB(ismember(tagB(:,1),tagA(:,1)));
+tagB=tagB(ismember(tagB(:,1),tagA(:,1)),:);
+if ~all(strcmp(tagA(:,1),tagB(:,1)))
+spkCA=[];
+spkCB=[];
+return
+end
+for i=1:size(tagA,1)
+spkCA{i}=spkCA{i}(ismember(tagA{i,2},tagB{i,2},'rows'),:,:);
+tagA{i,2}=tagA{i,2}(ismember(tagA{i,2},tagB{i,2},'rows'),:);
+end
+for i=1:size(tagB,1)
+spkCB{i}=spkCB{i}(ismember(tagB{i,2},tagA{i,2},'rows'),:,:);
+tagB{i,2}=tagB{i,2}(ismember(tagB{i,2},tagA{i,2},'rows'),:);
+end
+%
+sel=(cellfun(@(x) size(x,2),spkCA)>30 & cellfun(@(x) size(x,2),spkCB)>30);
+%
+spkCA=spkCA(sel);
+spkCB=spkCB(sel);
+tagA=tagA(sel,:);
+tagB=tagB(sel,:);
+
+%%%%%%%%%%%%%%
+%save('5sDNMSNaive.mat','spkCA','spkCB','tagA','tagB','sel','delayLen');
+
+
+
+delayLen=8;
+[spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,15,true,delayLen,false);
+[spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,15,false,delayLen,false);
+spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)));
+tagA=tagA(ismember(tagA(:,1),tagB(:,1)),:);
+spkCB=spkCB(ismember(tagB(:,1),tagA(:,1)));
+tagB=tagB(ismember(tagB(:,1),tagA(:,1)),:);
+if ~all(strcmp(tagA(:,1),tagB(:,1)))
+spkCA=[];
+spkCB=[];
+return
+end
+for i=1:size(tagA,1)
+spkCA{i}=spkCA{i}(ismember(tagA{i,2},tagB{i,2},'rows'),:,:);
+tagA{i,2}=tagA{i,2}(ismember(tagA{i,2},tagB{i,2},'rows'),:);
+end
+for i=1:size(tagB,1)
+spkCB{i}=spkCB{i}(ismember(tagB{i,2},tagA{i,2},'rows'),:,:);
+tagB{i,2}=tagB{i,2}(ismember(tagB{i,2},tagA{i,2},'rows'),:);
+end
+%
+sel=(cellfun(@(x) size(x,2),spkCA)>25 & cellfun(@(x) size(x,2),spkCB)>25);
+%
+spkCA=spkCA(sel);
+spkCB=spkCB(sel);
+tagA=tagA(sel,:);
+tagB=tagB(sel,:);
+
+%%%%%%%%%%%%%%
+%save('8sDNMSAllTrial.mat','spkCA','spkCB','tagA','tagB','sel','delayLen');
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% naive average MI
+delayLen=5;
+[spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.1,12,true,delayLen,false);
+[spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.1,12,false,delayLen,false);
+spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)));
+tagA=tagA(ismember(tagA(:,1),tagB(:,1)),:);
+spkCB=spkCB(ismember(tagB(:,1),tagA(:,1)));
+tagB=tagB(ismember(tagB(:,1),tagA(:,1)),:);
+if ~all(strcmp(tagA(:,1),tagB(:,1)))
+spkCA=[];
+spkCB=[];
+return
+end
+for i=1:size(tagA,1)
+spkCA{i}=spkCA{i}(ismember(tagA{i,2},tagB{i,2},'rows'),:,:);
+tagA{i,2}=tagA{i,2}(ismember(tagA{i,2},tagB{i,2},'rows'),:);
+end
+for i=1:size(tagB,1)
+spkCB{i}=spkCB{i}(ismember(tagB{i,2},tagA{i,2},'rows'),:,:);
+tagB{i,2}=tagB{i,2}(ismember(tagB{i,2},tagA{i,2},'rows'),:);
+end
+
+uniqTag=tagA;
+
+
+%%%%%%%%%%%%%%
+%save('5sDNMSNaive4MI.mat','spkCA','spkCB','uniqTag','delayLen');
 

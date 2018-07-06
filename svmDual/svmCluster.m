@@ -1,5 +1,6 @@
-function svmCluster(delayLen,dataFile)
-
+function svmCluster(delayLen,dataFile,subsample)
+hyth=parallel.importProfile('cpu12x2.profile');
+parpool(hyth);
 % 
 %  saveDualCrossoverFile();
 %  return;
@@ -7,14 +8,14 @@ function svmCluster(delayLen,dataFile)
 
 isW_Error=false;
 %%%%%%%%%onCluster%%%%%%%%%%
-% addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
-% decRpt=500;
-% permRpt=1000;
-
-%%%%%%%%%%local%%%%%%%%%
-addpath('R:\ZX\libsvm-3.22\windows\');
+addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
 decRpt=500;
 permRpt=1000;
+
+%%%%%%%%%%local%%%%%%%%%
+% addpath('R:\ZX\libsvm-3.22\windows\');
+% decRpt=500;
+% permRpt=1000;
 
 % saveFile(delayLen,dataFile);
 
@@ -29,8 +30,10 @@ if isW_Error
     errSpkCA=fstr.errSpkCA;
     errSpkCB=fstr.errSpkCB;
 end
-crange=2.^(-5:0.5:5);
-grange=2.^(-13:0.5:-3);
+
+
+crange=2.^(-5:1:5);
+grange=2.^(-10:1:0);
 
 avgAccu=nan(length(crange),length(grange),length(3:tsLen),2);
 accuracyAll=nan(length(crange),length(grange),decRpt,3,(tsLen+2));
@@ -45,16 +48,18 @@ for cIdx=1:length(crange)
          %cIdx=20, gIdx=6 for CombinedGo
          %cIdx=16, gIdx=12 for CombinedNoGo
          %cIdx=14, gIdx=14 for CombinedNone
+         %cIdx=11, gIdx=1 for 5sNaive
+         %cIdx-8, gIdx=4 for 8s_allTrial_100Sample
         accuracy=nan(decRpt,3,(tsLen+2));
         
         futures=parallel.FevalFuture.empty(0,tsLen);
         for ts=3:tsLen
             if isW_Error
-                futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g,isW_Error);
+                futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g,isW_Error,subsample);
             else
-                futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error);
+                futures(ts)=parfeval(@svmOneTSBin,1,ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error,subsample);
             end
-%             accuracy(:,:,ts)=svmOneTSBin(ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error);
+%             accuracy(:,:,ts)=svmOneTSBin(ts,instCount,spkCA,spkCB,spkCA,spkCB,decRpt,c,g,isW_Error,subsample);
         end
         
         for ts=3:tsLen
@@ -117,7 +122,7 @@ for cIdx=1:length(crange)
         
         
         arrayfun(@(x) plot([x,x],ylim(),':k'),[1 2 delayLen+2 delayLen+3]*2+0.5);
-        set(gca,'XTick',[0:5:10]*2+0.5,'XTickLabel',0:5:10,'YTick',0.5:0.25:1);
+        set(gca,'XTick',[0:5:10]*2+2.5,'XTickLabel',0:5:10,'YTick',0.5:0.25:1);
         xlim([0,tsLen-6]);
         ylim([0.4,1]);
         xlabel('Time (s)');
@@ -139,9 +144,12 @@ end
 
 
 
-function accuracy=svmOneTSBin(ts,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g,isW_Error)
+function accuracy=svmOneTSBin(ts,instCount,spkCA,spkCB,errSpkCA,errSpkCB,decRpt,c,g,isW_Error,subsample)
 accuracy=nan(decRpt,3);
 for rpt=1:decRpt
+    
+    
+    
     instPerSess=[cellfun(@(x) size(x,2),spkCA); cellfun(@(x) size(x,2), spkCB)];
     instIdces=cell2mat(arrayfun(@(x) flexPerm(x,instCount+1),instPerSess,'UniformOutput',false));
     testInstIdces=instIdces(:,1);
@@ -163,6 +171,14 @@ for rpt=1:decRpt
     %
     %         instMatRaw=[cell2mat(cellfun(@(x) x(:,instIdces,ts), spkCA,'UniformOutput',false)),...
     %             cell2mat(cellfun(@(x) x(:,instIdces,ts), spkCB,'UniformOutput',false))]';
+    
+    if exist('subsample','var')
+        SUCount=size(instMatRaw,2);
+        selectedSU=randperm(SUCount,subsample);
+        instMatRaw=instMatRaw(:,selectedSU);
+        testMatRaw=testMatRaw(:,selectedSU);
+        errTestMatRaw=errTestMatRaw(:,selectedSU);
+    end
     
     scale=(max(instMatRaw)-min(instMatRaw));%1x205
     instMat=(instMatRaw-repmat(min(instMatRaw),2*instCount,1))./repmat(scale,2*instCount,1);
@@ -342,67 +358,67 @@ save(dataFile,'spkCA','spkCB');
 
 end
 
-% 
-% function saveErrorFile(delayLen,dataFile)
-% delayLen=8;dataFile='8sDNMS_Err.mat';
-% [spkCA,tagA]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,true,delayLen,true);
-% [spkCB,tagB]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,false,delayLen,true);
-% [errSpkCA,tagAE]=allByTypeDNMS('sampleerror','Average2Hz',-2,0.5,delayLen+7,true,delayLen,false);
-% [errSpkCB,tagBE]=allByTypeDNMS('sampleerror','Average2Hz',-2,0.5,delayLen+7,false,delayLen,false);
-% 
-% 
-% spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)) & ismember(tagA(:,1),tagAE(:,1)) & ismember(tagA(:,1),tagBE(:,1)));
-% tagA=tagA(ismember(tagA(:,1),tagB(:,1)) & ismember(tagA(:,1),tagAE(:,1)) & ismember(tagA(:,1),tagBE(:,1)),:);
-% 
-% spkCB=spkCB(ismember(tagB(:,1),tagA(:,1)) & ismember(tagB(:,1),tagAE(:,1)) & ismember(tagB(:,1),tagBE(:,1)));
-% tagB=tagB(ismember(tagB(:,1),tagA(:,1)) & ismember(tagB(:,1),tagAE(:,1)) & ismember(tagB(:,1),tagBE(:,1)),:);
-% 
-% errSpkCA=errSpkCA(ismember(tagAE(:,1),tagA(:,1)) & ismember(tagAE(:,1),tagB(:,1)) & ismember(tagAE(:,1),tagBE(:,1)));
-% tagAE=tagAE(ismember(tagAE(:,1),tagA(:,1)) & ismember(tagAE(:,1),tagB(:,1)) & ismember(tagAE(:,1),tagBE(:,1)),:);
-% 
-% errSpkCB=errSpkCB(ismember(tagBE(:,1),tagA(:,1)) & ismember(tagBE(:,1),tagB(:,1)) & ismember(tagBE(:,1),tagAE(:,1)));
-% tagBE=tagBE(ismember(tagBE(:,1),tagA(:,1)) & ismember(tagBE(:,1),tagB(:,1)) & ismember(tagBE(:,1),tagAE(:,1)),:);
-% 
-% 
-% if (~all(strcmp(tagA(:,1),tagB(:,1)))) || (~all(strcmp(tagA(:,1),tagAE(:,1)))) || (~all(strcmp(tagA(:,1),tagBE(:,1))))
-%     spkCA=[];
-%     spkCB=[];
-%     errSpkCA=[];
-%     errSpkCB=[];
-%     return
-% end
-% 
-% for i=1:size(tagA,1)
-%     spkCA{i}=spkCA{i}(ismember(tagA{i,2},tagB{i,2},'rows') & ismember(tagA{i,2},tagAE{i,2},'rows') & ismember(tagA{i,2},tagBE{i,2},'rows'),:,:);
-%     tagA{i,2}=tagA{i,2}(ismember(tagA{i,2},tagB{i,2},'rows') & ismember(tagA{i,2},tagAE{i,2},'rows') & ismember(tagA{i,2},tagBE{i,2},'rows'),:);
-% end
-% 
-% for i=1:size(tagB,1)
-%     spkCB{i}=spkCB{i}(ismember(tagB{i,2},tagA{i,2},'rows') & ismember(tagB{i,2},tagAE{i,2},'rows') & ismember(tagB{i,2},tagBE{i,2},'rows'),:,:);
-%     tagB{i,2}=tagB{i,2}(ismember(tagB{i,2},tagA{i,2},'rows') & ismember(tagB{i,2},tagAE{i,2},'rows') & ismember(tagB{i,2},tagBE{i,2},'rows'),:);
-% end
-% 
-% for i=1:size(tagAE,1)
-%     errSpkCA{i}=errSpkCA{i}(ismember(tagAE{i,2},tagA{i,2},'rows') & ismember(tagAE{i,2},tagB{i,2},'rows') & ismember(tagAE{i,2},tagBE{i,2},'rows'),:,:);
-%     tagAE{i,2}=tagAE{i,2}(ismember(tagAE{i,2},tagA{i,2},'rows') & ismember(tagAE{i,2},tagB{i,2},'rows') & ismember(tagAE{i,2},tagBE{i,2},'rows'),:);
-% end
-% 
-% for i=1:size(tagBE,1)
-%     errSpkCB{i}=errSpkCB{i}(ismember(tagBE{i,2},tagA{i,2},'rows') & ismember(tagBE{i,2},tagB{i,2},'rows') & ismember(tagBE{i,2},tagAE{i,2},'rows'),:,:);
-%     tagBE{i,2}=tagBE{i,2}(ismember(tagBE{i,2},tagA{i,2},'rows') & ismember(tagBE{i,2},tagB{i,2},'rows') & ismember(tagBE{i,2},tagAE{i,2},'rows'),:);
-% end
-% 
-% sel=(cellfun(@(x) size(x,2),spkCA)>10 & cellfun(@(x) size(x,2),spkCB)>10 & cellfun(@(x) size(x,2),errSpkCA)>10 & cellfun(@(x) size(x,2),errSpkCB)>10);
-% 
-% spkCA=spkCA(sel);
-% spkCB=spkCB(sel);
-% errSpkCA=errSpkCA(sel);
-% errSpkCB=errSpkCB(sel);
-% 
-% 
-% save(dataFile,'spkCA','spkCB','errSpkCA','errSpkCB');
-% fprintf('%d\n',sum(cellfun(@(x) size(x,1),spkCA)));
-% end
+
+function saveErrorFile(delayLen,dataFile)
+delayLen=8;dataFile='8sDNMS_Err.mat';
+[spkCA,tagA]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,true,delayLen,true);
+[spkCB,tagB]=allByTypeDNMS('sample','Average2Hz',-2,0.5,delayLen+7,false,delayLen,true);
+[errSpkCA,tagAE]=allByTypeDNMS('sampleerror','Average2Hz',-2,0.5,delayLen+7,true,delayLen,false);
+[errSpkCB,tagBE]=allByTypeDNMS('sampleerror','Average2Hz',-2,0.5,delayLen+7,false,delayLen,false);
+
+
+spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)) & ismember(tagA(:,1),tagAE(:,1)) & ismember(tagA(:,1),tagBE(:,1)));
+tagA=tagA(ismember(tagA(:,1),tagB(:,1)) & ismember(tagA(:,1),tagAE(:,1)) & ismember(tagA(:,1),tagBE(:,1)),:);
+
+spkCB=spkCB(ismember(tagB(:,1),tagA(:,1)) & ismember(tagB(:,1),tagAE(:,1)) & ismember(tagB(:,1),tagBE(:,1)));
+tagB=tagB(ismember(tagB(:,1),tagA(:,1)) & ismember(tagB(:,1),tagAE(:,1)) & ismember(tagB(:,1),tagBE(:,1)),:);
+
+errSpkCA=errSpkCA(ismember(tagAE(:,1),tagA(:,1)) & ismember(tagAE(:,1),tagB(:,1)) & ismember(tagAE(:,1),tagBE(:,1)));
+tagAE=tagAE(ismember(tagAE(:,1),tagA(:,1)) & ismember(tagAE(:,1),tagB(:,1)) & ismember(tagAE(:,1),tagBE(:,1)),:);
+
+errSpkCB=errSpkCB(ismember(tagBE(:,1),tagA(:,1)) & ismember(tagBE(:,1),tagB(:,1)) & ismember(tagBE(:,1),tagAE(:,1)));
+tagBE=tagBE(ismember(tagBE(:,1),tagA(:,1)) & ismember(tagBE(:,1),tagB(:,1)) & ismember(tagBE(:,1),tagAE(:,1)),:);
+
+
+if (~all(strcmp(tagA(:,1),tagB(:,1)))) || (~all(strcmp(tagA(:,1),tagAE(:,1)))) || (~all(strcmp(tagA(:,1),tagBE(:,1))))
+    spkCA=[];
+    spkCB=[];
+    errSpkCA=[];
+    errSpkCB=[];
+    return
+end
+
+for i=1:size(tagA,1)
+    spkCA{i}=spkCA{i}(ismember(tagA{i,2},tagB{i,2},'rows') & ismember(tagA{i,2},tagAE{i,2},'rows') & ismember(tagA{i,2},tagBE{i,2},'rows'),:,:);
+    tagA{i,2}=tagA{i,2}(ismember(tagA{i,2},tagB{i,2},'rows') & ismember(tagA{i,2},tagAE{i,2},'rows') & ismember(tagA{i,2},tagBE{i,2},'rows'),:);
+end
+
+for i=1:size(tagB,1)
+    spkCB{i}=spkCB{i}(ismember(tagB{i,2},tagA{i,2},'rows') & ismember(tagB{i,2},tagAE{i,2},'rows') & ismember(tagB{i,2},tagBE{i,2},'rows'),:,:);
+    tagB{i,2}=tagB{i,2}(ismember(tagB{i,2},tagA{i,2},'rows') & ismember(tagB{i,2},tagAE{i,2},'rows') & ismember(tagB{i,2},tagBE{i,2},'rows'),:);
+end
+
+for i=1:size(tagAE,1)
+    errSpkCA{i}=errSpkCA{i}(ismember(tagAE{i,2},tagA{i,2},'rows') & ismember(tagAE{i,2},tagB{i,2},'rows') & ismember(tagAE{i,2},tagBE{i,2},'rows'),:,:);
+    tagAE{i,2}=tagAE{i,2}(ismember(tagAE{i,2},tagA{i,2},'rows') & ismember(tagAE{i,2},tagB{i,2},'rows') & ismember(tagAE{i,2},tagBE{i,2},'rows'),:);
+end
+
+for i=1:size(tagBE,1)
+    errSpkCB{i}=errSpkCB{i}(ismember(tagBE{i,2},tagA{i,2},'rows') & ismember(tagBE{i,2},tagB{i,2},'rows') & ismember(tagBE{i,2},tagAE{i,2},'rows'),:,:);
+    tagBE{i,2}=tagBE{i,2}(ismember(tagBE{i,2},tagA{i,2},'rows') & ismember(tagBE{i,2},tagB{i,2},'rows') & ismember(tagBE{i,2},tagAE{i,2},'rows'),:);
+end
+
+sel=(cellfun(@(x) size(x,2),spkCA)>10 & cellfun(@(x) size(x,2),spkCB)>10 & cellfun(@(x) size(x,2),errSpkCA)>10 & cellfun(@(x) size(x,2),errSpkCB)>10);
+
+spkCA=spkCA(sel);
+spkCB=spkCB(sel);
+errSpkCA=errSpkCA(sel);
+errSpkCB=errSpkCB(sel);
+
+
+save(dataFile,'spkCA','spkCB','errSpkCA','errSpkCB');
+fprintf('%d\n',sum(cellfun(@(x) size(x,1),spkCA)));
+end
 
 
 function saveDualCrossoverFile()

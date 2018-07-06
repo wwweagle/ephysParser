@@ -7,14 +7,14 @@ function svmCrossCluster(inFile)
 
 
 %%%%%%%%onCluster%%%%%%%%%%
-addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
-decRpt=500;
-permRpt=1000;
-
-% %%%%%%%%%%local%%%%%%%%%
-% addpath('R:\ZX\libsvm-3.22\windows\');
+% addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
 % decRpt=500;
 % permRpt=1000;
+
+% %%%%%%%%%%local%%%%%%%%%
+addpath('R:\ZX\libsvm-3.22\windows\');
+decRpt=500;
+permRpt=1000;
 
 instCount=30;
 load(inFile,'allSpks');
@@ -28,10 +28,10 @@ avgAccu=nan(length(crange),length(grange),length(3:tsLen),3);
 accuAll=nan(length(crange),length(grange),decRpt,3,tsLen+2);
 pvShufAll=nan(length(crange),length(grange),3,tsLen+2);
 
-for cIdx=1:length(crange)
-    for gIdx=1:length(grange)
-%         cIdx=5;
-%         gIdx=7;
+for cIdx=1%:length(crange)
+    for gIdx=1%:length(grange)
+        cIdx=5;
+        gIdx=7;
          c=crange(cIdx);
          g=grange(gIdx);
         

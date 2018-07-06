@@ -1,8 +1,8 @@
 % load Im4sDNMS.mat
 % load Im8s.mat
-% inFile='Im4sDNMS.mat';
+inFile='Im4sDNMS.mat';
 % inFile='ImDualAll8s.mat';
-inFile='ImDualAll13s.mat';
+% inFile='ImDualAll13s.mat';
 % inFile='im8sDNMS.mat';
 % 
 % inFile='imMultiSample5s.mat';
