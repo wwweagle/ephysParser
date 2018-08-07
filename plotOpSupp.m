@@ -1,5 +1,5 @@
 function s=plotOpSupp(ramp)
-s=SampleOpSupp('OpSuppress','Average2HzWhole',-2,0.2,11,[100,0;100,0],1,false,ramp);
+s=SampleOpSupp('OpSuppress','Average2HzWhole',-2,0.2,5,[100,0;100,0],1,false,ramp);
 p=nan(size(s,1),2);
 
 if ramp
@@ -57,6 +57,6 @@ permDiff(rptIdx)=abs(mean(poolA)-mean(poolB));
 end
 
 meanDiff=mean(permDiff);
-p=nnz(abs(permDiff-meanDiff)>=abs(currDiff-meanDiff))./rpt;
+p=sum(abs(permDiff-meanDiff)>=abs(currDiff-meanDiff))./rpt;
 
 end
