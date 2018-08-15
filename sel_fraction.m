@@ -1,6 +1,6 @@
-delayLen=4;
-[spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.1,13,true,delayLen,true);
-[spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.1,13,false,delayLen,true);
+delayLen=8;
+[spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.1,delayLen+7,true,delayLen,true);
+[spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.1,delayLen+7,false,delayLen,true);
 
 
 if (~all(strcmp(tagA(:,1),tagB(:,1)))) || ~isequal(tagA(:,2),tagB(:,2))
@@ -30,14 +30,15 @@ for i=21:10:delayLen*10+41
     text(i+4,0.025,p2str(p.*11),'HorizontalAlignment','center','FontSize',10);%bonferrini
 end
 
-
-set(gca,'XTick',[0,5,10]*10+20+0.5,'XTickLabel',[0 5 10]);
+ax=gca;
+ax.XTick=[0,5,10]*10+20+0.5;
+ax.XTickLabel=[0 5 10];
+ax.FontSize=10;
 
 
 
 xlabel('Time (s)');
 ylabel('Fraction of selective neurons');
-set(gca,'FontSize',10);
 xlim([11,50+delayLen*10]);
 ylim([0,0.6])
 print('-depsc','-painters','-r0',sprintf('sel_fraction_%d.eps',delayLen));

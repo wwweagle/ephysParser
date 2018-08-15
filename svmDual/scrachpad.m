@@ -46,7 +46,7 @@ save('ImDualByDistrCombined.mat','allSpks','uniqTag');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % naive welltrain comparison
 
-delayLen=5;
+delayLen=8;
 [spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,12,true,delayLen,false);
 [spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,12,false,delayLen,false);
 spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)));
@@ -79,9 +79,9 @@ tagB=tagB(sel,:);
 
 
 
-delayLen=8;
-[spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,15,true,delayLen,false);
-[spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,15,false,delayLen,false);
+delayLen=4;
+[spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,delayLen+7,true,delayLen,true);
+[spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.5,delayLen+7,false,delayLen,true);
 spkCA=spkCA(ismember(tagA(:,1),tagB(:,1)));
 tagA=tagA(ismember(tagA(:,1),tagB(:,1)),:);
 spkCB=spkCB(ismember(tagB(:,1),tagA(:,1)));
@@ -100,12 +100,14 @@ spkCB{i}=spkCB{i}(ismember(tagB{i,2},tagA{i,2},'rows'),:,:);
 tagB{i,2}=tagB{i,2}(ismember(tagB{i,2},tagA{i,2},'rows'),:);
 end
 %
-sel=(cellfun(@(x) size(x,2),spkCA)>25 & cellfun(@(x) size(x,2),spkCB)>25);
+sel=(cellfun(@(x) size(x,2),spkCA)>40 & cellfun(@(x) size(x,2),spkCB)>40);
 %
 spkCA=spkCA(sel);
 spkCB=spkCB(sel);
 tagA=tagA(sel,:);
 tagB=tagB(sel,:);
+
+sum(cellfun(@(x) size(x,1),spkCA))
 
 %%%%%%%%%%%%%%
 %save('8sDNMSAllTrial.mat','spkCA','spkCB','tagA','tagB','sel','delayLen');
