@@ -14,12 +14,12 @@ isW_Error=false;
 
 %%%%%%%%%%local%%%%%%%%%
 addpath('R:\ZX\libsvm-3.22\windows\');
-decRpt=500;
+decRpt=31;
 permRpt=1000;
 
 % saveFile(delayLen,dataFile);
 
-instCount=30;
+instCount=decRpt-1;
 fstr=load(dataFile);
 tsLen=(delayLen+8)*2;
 
@@ -32,14 +32,14 @@ if isW_Error
 end
 
 
-crange=2.^(-5:0.5:5);
-grange=2.^(-10:0.5:0);
+crange=2.^(-5:1:5);
+grange=2.^(-10:1:0);
 
 avgAccu=nan(length(crange),length(grange),length(3:tsLen),2);
 accuracyAll=nan(length(crange),length(grange),decRpt,3,(tsLen+2));
 pvShufAll=nan(length(crange),length(grange),3,(tsLen+2));
-for cIdx=1:length(crange)
-    for gIdx=1:length(grange)
+for cIdx=6%1:length(crange)
+    for gIdx=10%1:length(grange)
          c=crange(cIdx);
          g=grange(gIdx);
          
@@ -89,11 +89,11 @@ for cIdx=1:length(crange)
         
         fh=figure('Color','w','Position',[1000,100,250,180]);
         hold on;
-        ci=bootci(1000,@mean,accuracy(:,1,3:tsLen));
+        ci=bootci(100,@mean,accuracy(:,1,3:tsLen));
         if isW_Error
-            ciErr=bootci(1000,@mean, accuracy(:,2,3:tsLen));
+            ciErr=bootci(100,@mean, accuracy(:,2,3:tsLen));
         end
-        ciShuf=bootci(1000,@mean, accuracy(:,3,3:tsLen));
+        ciShuf=bootci(100,@mean, accuracy(:,3,3:tsLen));
         fill([3:tsLen,tsLen:-1:3]-2,[ci(1,:),fliplr(ci(2,:))]./100,[1,0.8,0.8],'EdgeColor','none');
         if isW_Error
              fill([3:tsLen,tsLen:-1:3]-2,[ciErr(1,:),fliplr(ciErr(2,:))]./100,[0.8,0.8,1],'EdgeColor','none');
@@ -123,14 +123,14 @@ for cIdx=1:length(crange)
         
         arrayfun(@(x) plot([x,x],ylim(),':k'),[1 2 delayLen+2 delayLen+3]*2+0.5);
         set(gca,'XTick',[0:5:10]*2+2.5,'XTickLabel',0:5:10,'YTick',0.5:0.25:1);
-        xlim([0,tsLen-8]);
+        xlim([0,tsLen-6]);
         ylim([0.4,1]);
         xlabel('Time (s)');
         ylabel('Sample decoding accuracy');
-        title(sprintf('%s, c@%.4f, g@%0.4f, n = %d',strrep(dataFile,'.mat',''),c,g,sum(cellfun(@(x) size(x,1),spkCA))));
+        title(sprintf('%s, c@%.4f, g@%0.4f, n = %d',strrep(dataFile,'.mat',''),c,g,sum(cellfun(@(x) size(x,1),spkCA))),'Interpreter','none');
         print(sprintf('SVM%s_c%.4f_g%0.4f.png',dataFile,c,g),'-dpng');
         print(sprintf('SVM%s_c%.4f_g%0.4f.eps',dataFile,c,g),'-depsc','-painters','-r0');
-         close(fh);
+%          close(fh);
         avgAccu(cIdx,gIdx,:,1)=mean(squeeze(accuracy(:,1,3:tsLen)));
         avgAccu(cIdx,gIdx,:,2)=mean(squeeze(accuracy(:,2,3:tsLen)));
         accuracyAll(cIdx,gIdx,:,:,:)=accuracy;
@@ -152,9 +152,14 @@ for rpt=1:decRpt
     
     
     instPerSess=[cellfun(@(x) size(x,2),spkCA); cellfun(@(x) size(x,2), spkCB)];
-    instIdces=cell2mat(arrayfun(@(x) flexPerm(x,instCount+1),instPerSess,'UniformOutput',false));
-    testInstIdces=instIdces(:,1);
-    instIdces=instIdces(:,2:end);
+    
+%     instIdces=cell2mat(arrayfun(@(x) flexPerm(x,instCount+1),instPerSess,'UniformOutput',false));
+%     testInstIdces=instIdces(:,1);
+%     instIdces=instIdces(:,2:end);
+    testInstIdces=ones(length(instPerSess),1)*rpt;
+    instIdces=1:decRpt;
+    instIdces(instIdces==rpt)=[];
+    instIdces=ones(length(instPerSess),1)*instIdces;
     
     instPerErrSess=[cellfun(@(x) size(x,2),errSpkCA); cellfun(@(x) size(x,2), errSpkCB)];
     errTestIdces=arrayfun(@(x) randperm(x,1),instPerErrSess);
@@ -173,7 +178,7 @@ for rpt=1:decRpt
     %         instMatRaw=[cell2mat(cellfun(@(x) x(:,instIdces,ts), spkCA,'UniformOutput',false)),...
     %             cell2mat(cellfun(@(x) x(:,instIdces,ts), spkCB,'UniformOutput',false))]';
     
-    if exist('subsample','var') && ~isempty(subsample)
+    if exist('subsample','var') & (~isempty(subsample))
         SUCount=size(instMatRaw,2);
         selectedSU=randperm(SUCount,subsample);
         instMatRaw=instMatRaw(:,selectedSU);
@@ -481,10 +486,10 @@ end
 end
 
 function plotAdditionalDec
-ci=bootci(1000,@(x) mean(x),squeeze(accuracy(:,1,3:end-2)))./100;
+ci=bootci(100,@(x) mean(x),squeeze(accuracy(:,1,3:end-2)))./100;
 fill([1:length(ci),length(ci):-1:1],[ci(1,:),fliplr(ci(2,:))],[0.8,0.8,1],'EdgeColor','none');
 plot(mean(squeeze(accuracy(:,1,3:end-2))./100),'-b','LineWidth',1);
-xlim([0,length(ci)-8]);
+xlim([0,length(ci)-6]);
 
         for i=3:length(pvShuf)-1
 %             fprintf('%.4f,',max(pvShuf(1,i:i+1)))

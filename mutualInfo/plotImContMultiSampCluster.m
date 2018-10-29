@@ -11,15 +11,8 @@ tag=cell(0,0);
 for f= 1:length(allSpks{1})
     for u=1:size(allSpks{1}{f},1)
         fidx=fidx+1;
+        fprintf('\n##%d, %d##\n',f,u);
         tag{fidx}={uniqTag{f,1},uniqTag{f,2}(u,:)};
-%         futures(fidx)=parfeval(@plotOne,2,allSpks,f,u,outName);
-%         [a,b]=plotOne(allSpks,f,u,outName);
-%     end
-% end
-
-% for ffidx=1:fidx
-%     try
-%         [ps,ims]=fetchOutputs(futures(ffidx));
         
         [ps,ims]=plotOne(allSpks,f,u,outName);
         pCrossTime=[pCrossTime;{tag{fidx},ps}];
@@ -135,7 +128,9 @@ end
             arrayfun(plotTag,[0 1 5 6]);
             xlim([-1,7]);
         end
-        plot(xPos(pOne<0.01),-0.05,'k.');
+        if sum(pOne<0.01)>0
+            plot(xPos(pOne<0.01),-0.05,'k.');
+        end
         ylim([-0.1,max(ylim())]);
         savefig(cf,[fnameTag,num2str(f*1000+u),'.fig'],'compact');
         print('-dpng',[fnameTag,num2str(f*1000+u),'.png']);

@@ -1,21 +1,28 @@
 imMat=cell2mat(Im(:,2));
-p=cell2mat(pCrossTime(:,2));
+pMat=cell2mat(pCrossTime(:,2));
+imMat(ismember(inAll(:,1),DelayLaserFiles),:)=[];
+pMat(ismember(inAll(:,1),DelayLaserFiles),:)=[];
 
-imMat(p>0.001)=0;
 
-for i=1:size(imMat,1)
-    for j=1:size(imMat,2)
-        if isnan(imMat(i,j)) || isinf(imMat(i,j))
-            imMat(i,j)=0;
-            k=j+1;
-            while isnan(imMat(i,k)) || isinf(imMat(i,k))
-                k=k+1;
-            end
-            imMat(i,j:k-1)=imMat(i ,j-1)+(1:k-j).*(imMat(i,k)-imMat(i,j-1))/(k-j+1);
-%             imMat(i,j:k-1)=0;
-        end
-    end
-end
+
+imMat(pMat>0.001)=0;
+
+imMat(isnan(imMat) | isinf(imMat))=0;
+% imFilt=
+
+% for i=1:size(imMat,1)
+%     for j=1:size(imMat,2)
+%         if isnan(imMat(i,j)) || isinf(imMat(i,j))
+%             imMat(i,j)=0;
+%             k=j+1;
+%             while isnan(imMat(i,k)) || isinf(imMat(i,k))
+%                 k=k+1;
+%             end
+%             imMat(i,j:k-1)=imMat(i ,j-1)+(1:k-j).*(imMat(i,k)-imMat(i,j-1))/(k-j+1);
+% %             imMat(i,j:k-1)=0;
+%         end
+%     end
+% end
 
 % disp(nnz(isinf(imMat)));
 xPos=[1:size(pMat,2)]*0.1-1.75-0.1;

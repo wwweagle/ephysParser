@@ -22,7 +22,7 @@ fevk=figure('Color','w','Position',[200,200,310,200]);
 hold on;
 for fIdx=1:length(ids)
     suIdx=suIdces(fIdx);
-    if ids(fIdx)==37 && suIdx==4
+    if ids(fIdx)==37 && suIdx==1
         continue;
     end
     load(fileList{ids(fIdx)});
@@ -37,6 +37,7 @@ for fIdx=1:length(ids)
     mCi=bootci(100,@(x) nanmean(x), evoked);
     sdDelay=nanstd(evoked);
     sdCi=bootci(100,@(x) nanstd(x),evoked);
+    fprintf('%d_%d_%.4f_%.4f_%.4f\n',ids(fIdx),suIdx,mDelay,mCi(1),mCi(2));
     figure(fjitter);
     errorbar(sdDelay,mDelay,mCi(1)-mDelay,mCi(2)-mDelay,'k.');
     

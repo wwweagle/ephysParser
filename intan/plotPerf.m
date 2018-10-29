@@ -1,7 +1,7 @@
 javaaddpath('R:\ZX\java\spk2fr\build\classes');
 s2f=spk2fr.multiplesample.Spk2fr();
-evtFiles=dir('r:\zx\apc\intan\**\*Event*');
-
+evtFiles=dir('O:\ZX\**\*Event*');
+evtFiles=evtFiles(arrayfun(@(x) ~contains(evtFiles(x).name,'DelayLaser'),1:length(evtFiles)));
 isCorrect=@(x) xor(xor(ismember(x(:,3),[3 4 6 7]),ismember(x(:,4),[3 4 6 7])),~x(:,5));
 % partialWellTrained=@(x) sum(evts(x:x+39,7))>31;
 
@@ -30,7 +30,7 @@ for f=1:size(fs,1)
     perf{perfIdx}=[perf{perfIdx};{arrayfun(@(x) sum(evts(x:x+19,7))*100/20,1:20:size(evts,1)-19),fs{f}}];
 end
 
-perfPerMice=cell2mat(arrayfun(@(y) mean(cell2mat(cellfun(@(x) x(1:11),perf{y}(:,1),'UniformOutput',false))),find(~cellfun('isempty',perf)),'UniformOutput',false))';
+perfPerMice=cell2mat(arrayfun(@(y) mean(cell2mat(cellfun(@(x) x(1:11),perf{y}(:,1),'UniformOutput',false)),1),find(~cellfun('isempty',perf)),'UniformOutput',false))';
 
 figure('Color','w','Position',[100,100,240,240]);
 hold on;

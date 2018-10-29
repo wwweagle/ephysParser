@@ -2,7 +2,7 @@
 sampFstr=load('ImDualAll8s.mat');
 distrFstr=load('Im8sDistr.mat');
 
-for i=1:length(sampFstr.Im)
+for i=108%1:length(sampFstr.Im)
     cf=figure();
     % fprintf('new figure for %d %d',f,u);
     hold on;
@@ -28,7 +28,8 @@ for i=1:length(sampFstr.Im)
     plot(xPos(distrFstr.pCrossTime{i,2}<0.01),-0.075,'b.');
     xlim([-1,11]);
 %     savefig(cf,[fnameTag,num2str(f*1000+u),'.fig'],'compact');
-    print('-dpng',sprintf('ImDualSamp_Distr_%d.png',i));
+%DBG
+%     print('-dpng',sprintf('ImDualSamp_Distr_%d.png',i));
     close(cf);
 end
 return;

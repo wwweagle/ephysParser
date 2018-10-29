@@ -7,21 +7,21 @@ javaaddpath('R:\ZX\java\spk2fr\lib\jmatio.jar');
 javaaddpath('R:\ZX\java\spk2fr\lib\commons-math3-3.5.jar');
 javaaddpath('R:\ZX\java\DualEvtParser\build\classes');
 s2f=spk2fr.Spk2fr;
-s2f.setWellTrainOnly(1);
+% s2f.setWellTrainOnly(1);
 % s2f.setRefracRatio(0.0015);
 % s2f.setLeastFR('Average2Hz');
 s2f.setRefracRatio(0.1);
 s2f.setLeastFR('all');
 
-% fl=listF();
+fl=listF();
 % fileList=fl.listDNMS4s();
-% fileList=fl.listDNMS8s();
-[~,id]=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,true,delayLen,true);
+fileList=fl.listDNMS8s();
+% [~,id]=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,true,delayLen,true);
 % id=evalin('base','idselA');
-fileList=id(:,1);
+% fileList=id(:,1);
 
 
-rLim=delayLen+5;% 9 for 4s delay, 13 for 8s delay
+rLim=delayLen+2;% 9 for 4s delay, 13 for 8s delay
 
 % 91_3 Dual-8s-R109-1-32EVT1234-R110-65-96-EVT18-21-0930_1GRP.mat
 % 07002
@@ -31,14 +31,16 @@ rLim=delayLen+5;% 9 for 4s delay, 13 for 8s delay
 for fi=fidx%1:size(fileList)
     
     fprintf('fid: %d\n',fi);
-    disp(fileList{fi});
-    ft=load(fileList{fi});
+%     disp(fileList{fi});
+%     ft=load(fileList{fi});
+    ft=load(fileList(fi,:));
     spk=ft.Spk;
     info=ft.TrialInfo;
-    genOne(spk,info,info(:,3)==info(:,4),true,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
-    genOne(spk,info,info(:,3)==info(:,4),false,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
-    genOne(spk,info,info(:,3)~=info(:,4),true,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
-    genOne(spk,info,info(:,3)~=info(:,4),false,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
+%     genOne(spk,info,info(:,3)==info(:,4),true,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
+%     genOne(spk,info,info(:,3)==info(:,4),false,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
+%     genOne(spk,info,info(:,3)~=info(:,4),true,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
+%     genOne(spk,info,info(:,3)~=info(:,4),false,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
+     genOne(spk,info,true(size(info,1),1),true,tetidx,uidx,fi*10000+tetidx*100+uidx+1);
 
 end
     
@@ -64,7 +66,7 @@ end
     function plotOne(ts,fidx)
         %         pf=nan(0,0);
         %         bn=nan(0,0);
-        figure('Color','w','Position',[100,100,280,280]);
+        figure('Color','w','Position',[1000,1000,280,280]);
         
         subplot('Position',[0.1,0.5,0.85,0.40]);
         hold on;
@@ -128,6 +130,8 @@ end
         xlim([-1,rLim]);
         ylim([min(ylim()),max([mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1)),mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1))])]);
         plotSegs(rLim);
+        set(gca,'XTick',[0,5,10],'YTick',[0,18,23,40],'YTickLabel',[0,20,0,20]);
+        
         
         
         
@@ -175,6 +179,8 @@ end
             case 9
                 vertLine=[0,1,5,6,7,7.5];
             case 13
+                vertLine=[0,1,9,10, 11, 11.5];
+            case 10
                 vertLine=[0,1,9,10, 11, 11.5];
         end
         plot(repmat(vertLine,2,1),repmat(ylim()',1,length(vertLine)),'--k');

@@ -1,20 +1,24 @@
 function svmCluster()
 
 %%%%%%%%%onCluster%%%%%%%%%%
-addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
-decRpt=500;
-permRpt=1000;
+% addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
+% decRpt=500;
+% permRpt=1000;
 
 %%%%%%%%%%local%%%%%%%%%
-% addpath('R:\ZX\libsvm-3.22\windows\');
-% decRpt=50;
-% permRpt=100;
+addpath('R:\ZX\libsvm-3.22\windows\');
+decRpt=500;
+permRpt=1000;
 
 % saveFile(delayLen,dataFile);
 
 instCount=30;
 dataFile='multiSamples.mat';
-load(dataFile,'samples');
+load(dataFile,'samples','DelayLaserFiles','inAll');
+sel=true(size(unique(inAll(:,1))));
+sel(ismember(unique(inAll(:,1)),DelayLaserFiles))=false;
+samples=cellfun(@(x) x(sel),samples,'UniformOutput',false);
+
 delayLen=5;
 tsLen=(delayLen+8)*2;
 crange=2.^(-6:2:6);
@@ -27,8 +31,8 @@ grange=2.^(-12:2:0);
 avgAccu=nan(length(crange),length(grange),length(3:tsLen),2);
 accuAll=nan(length(crange),length(grange),decRpt,3,tsLen+2);
 pvShufAll=nan(length(crange),length(grange),tsLen+2);
-for cIdx=1:length(crange)
-    for gIdx=1:length(grange)
+for cIdx=5%1:length(crange)
+    for gIdx=5%1:length(grange)
         c=crange(cIdx);
         g=grange(gIdx);
         accuracy=nan(decRpt,3,tsLen+2);
@@ -49,9 +53,9 @@ for cIdx=1:length(crange)
         
         fh=figure('Color','w','Position',[1000,100,250,180]);
         hold on;
-        ci=bootci(100,@mean,accuracy(:,1,3:tsLen));
+        ci=bootci(1000,@mean,accuracy(:,1,3:tsLen));
 
-        ciShuf=bootci(100,@mean, accuracy(:,3,3:tsLen));
+        ciShuf=bootci(1000,@mean, accuracy(:,3,3:tsLen));
         fill([3:tsLen,tsLen:-1:3]-2,[ci(1,:),fliplr(ci(2,:))]./100,[1,0.8,0.8],'EdgeColor','none');
 
         fill([3:tsLen,tsLen:-1:3]-2,[ciShuf(1,:),fliplr(ciShuf(2,:))]./100,[0.8,0.8,0.8],'EdgeColor','none');
@@ -61,7 +65,7 @@ for cIdx=1:length(crange)
         
         for i=3:tsLen-1
             if max(pvShuf(i:i+1))<0.001
-                plot(i-2:i-1,[0.05,0.05],'-r','LineWidth',1);
+                plot(i-2:i-1,[0.05,0.05],'-k','LineWidth',1);
             end
         end
         

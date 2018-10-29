@@ -5,7 +5,7 @@ javaaddpath('R:\ZX\java\spk2fr\lib\jmatio.jar');
 javaaddpath('R:\ZX\java\spk2fr\lib\commons-math3-3.5.jar');
 javaaddpath('R:\ZX\java\DualEvtParser\build\classes');
 s2f=spk2fr.Spk2fr;
-s2f.setWellTrainOnly(1);
+% s2f.setWellTrainOnly(1);
 s2f.setRefracRatio(0.0015);
 s2f.setLeastFR('Average2Hz');
 fl=listF();

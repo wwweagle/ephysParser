@@ -6,7 +6,11 @@ keyIdx=[];
 javaaddpath('R:\ZX\java\spk2fr\lib\commons-math3-3.5.jar');
 javaaddpath('R:\ZX\java\spk2fr\build\classes');
 bfl=spk2fr.multiplesample.BuildFileList();
-flist=string(bfl.toString(bfl.build('R:\ZX\APC\intan')));
+flistA=string(bfl.toString(bfl.build('O:\ZX\intan')));
+flistB=string(bfl.toString(bfl.build('O:\ZX\intan5')));
+flist=[flistA;flistB];
+
+
 clear bfl;
 fidx=0;
 for f=1:size(flist,1)
@@ -24,7 +28,7 @@ for ffidx=1:fidx
         FRData=[FRData;FRDataNew];
         keyIdx=[keyIdx;keyIdxNew];
     else
-        fprintf('Error  in file %d\n',flog(ffidx));
+        fprintf('Error in file %d\n',flog(ffidx));
     end
 end
 
@@ -34,6 +38,9 @@ end
         javaaddpath('R:\ZX\java\spk2fr\build\classes');
         s2f=spk2fr.multiplesample.Spk2fr();
         strSPK=load(flist(f,1));
+        if isfield(strSPK,'APC')
+            strSPK.SPK=strSPK.APC(strSPK.APC(:,2)~=0,1:3);
+        end
         strEvt=load(flist(f,2));
         evtTrials=wellTrained(s2f.buildTrials(strEvt.OdorOnset,strEvt.OdorOffset,strEvt.OdorID,strEvt.Lick,5));
         switch(groupBy)

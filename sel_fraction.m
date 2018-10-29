@@ -1,6 +1,7 @@
 delayLen=8;
-[spkCA,tagA]=allByTypeDNMS('sampleall','Average2Hz',-2,0.1,delayLen+7,true,delayLen,true);
-[spkCB,tagB]=allByTypeDNMS('sampleall','Average2Hz',-2,0.1,delayLen+7,false,delayLen,true);
+welltrainOnly=true;
+[spkCA,tagA]=allByTypeDNMS('sample','Average2Hz',-2,0.1,delayLen+7,true,delayLen,delayLen~=5);
+[spkCB,tagB]=allByTypeDNMS('sample','Average2Hz',-2,0.1,delayLen+7,false,delayLen,delayLen~=5);
 
 
 if (~all(strcmp(tagA(:,1),tagB(:,1)))) || ~isequal(tagA(:,2),tagB(:,2))
@@ -14,7 +15,7 @@ parfor winIdx=1:binCount-1
     mWindow=winIdx:winIdx+1;
     sig{winIdx}=arrayfun(@(x) permTAll(spkCA{x},spkCB{x},mWindow),1:length(spkCA),'UniformOutput',false);
 end
-ci=cellfun(@(x) bootci(100,@(y) mean(y<alpha),cell2mat(x)),sig,'UniformOutput',false);
+ci=cellfun(@(x) bootci(1000,@(y) mean(y<alpha),cell2mat(x)),sig,'UniformOutput',false);
 figure('Color','w','Position',[100,100,315,210]);
 hold on;
 fill([1:length(ci),length(ci):-1:1],[cellfun(@(x) max(x),ci),fliplr(cellfun(@(x) min(x),ci))],[1,0.8,0.8],'EdgeColor','none');
