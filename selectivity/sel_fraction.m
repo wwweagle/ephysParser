@@ -1,5 +1,4 @@
 delayLen=8;
-welltrainOnly=true;
 [spkCA,tagA]=allByTypeDNMS('sample','Average2Hz',-2,0.1,delayLen+7,true,delayLen,delayLen~=5);
 [spkCB,tagB]=allByTypeDNMS('sample','Average2Hz',-2,0.1,delayLen+7,false,delayLen,delayLen~=5);
 
@@ -13,7 +12,7 @@ alpha=0.05;
 binCount=size(spkCA{1},3);
 parfor winIdx=1:binCount-1
     mWindow=winIdx:winIdx+1;
-    sig{winIdx}=arrayfun(@(x) permTAll(spkCA{x},spkCB{x},mWindow),1:length(spkCA),'UniformOutput',false);
+    sig{winIdx}=arrayfun(@(x) SelTools.permTAll(spkCA{x},spkCB{x},mWindow),1:length(spkCA),'UniformOutput',false);
 end
 ci=cellfun(@(x) bootci(1000,@(y) mean(y<alpha),cell2mat(x)),sig,'UniformOutput',false);
 figure('Color','w','Position',[100,100,315,210]);
@@ -43,47 +42,4 @@ ylabel('Fraction of selective neurons');
 xlim([11,50+delayLen*10]);
 ylim([0,0.6])
 print('-depsc','-painters','-r0',sprintf('sel_fraction_%d.eps',delayLen));
-
-function out=permTAll(A,B,window)
-out=nan(1,size(A,1));
-flat=@(x) x(:);
-for i=1:size(A,1)
-    if all(flat(A(i,:,window))==0) && all(flat(B(i,:,window))==0)
-        out(i)=1;
-    else
-        out(i)=permTest(flat(A(i,:,window)),flat(B(i,:,window)));
-    end
-end
-end
-
-
-
-function out=permTest(A,B)
-    currDelta=abs(mean(A(:))-mean(B(:)));
-    permed=nan(1,1000);
-    for i=1:1000
-        [AA,BB]=permSample(A,B);
-        permed(i)=abs(mean(AA)-mean(BB));
-    end
-    out=mean(permed>=currDelta);
-end
-
-function [newA,newB]=permSample(A,B)
-pool=[A(:);B(:)];
-pool=pool(randperm(length(pool)));
-newA=pool(1:numel(A));
-newB=pool((numel(A)+1):end);
-end
-
-function out=p2str(p)
-if p<0.001
-    out='***';
-elseif p<0.01
-    out='**';
-elseif p<0.05
-    out='*';
-else
-    out='N.S.';
-end
-end
 

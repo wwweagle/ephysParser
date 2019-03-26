@@ -1,4 +1,4 @@
-function accuracy=svmClusterCrossTime(dataFile,decRpt)
+function accuracy=svmClusterCrossTime(dataFile,decRpt,shuffle)
 disp('**imagesc(squeeze(mean(accuracy(:,1,3:end-2,3:end-2),1))))**');
 if ~exist('decRpt','var')
     decRpt=2;
@@ -6,7 +6,7 @@ end
 
 if isunix &&~ismac
     %%%%%%%%%onCluster%%%%%%%%%%
-    addpath('/home/zhangxiaoxing/libsvm-3.22/matlab');
+    addpath('/ion/fnc/zhangxiaoxing/libsvm-3.22/matlab');
 
 elseif ispc
     %%%%%%%%%%local%%%%%%%%%09jm

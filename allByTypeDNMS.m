@@ -34,7 +34,7 @@ end
 %     para=spk2fr.MatPara(2,0.0015);
 % end
 
-para=spk2fr.MatPara(welltrained,0.0015);% 1, welltrained only, 0, non-well trained only, 2, all
+para=spk2fr.MatPara(welltrained,0.0015);% 1, welltrained only, 0, non-well trained only, 2, all   WT:> 31/40 consec trials
 clear dp;
 
 
