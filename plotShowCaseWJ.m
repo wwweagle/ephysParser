@@ -1,7 +1,10 @@
-function plotShowCaseWJ(fidx,tetidx,uidx)
+function plotShowCaseWJ(fidx,tetidx,uidx,delayLen)
+
+%30,45,1,8
+%86,8,2,4
+%
 byLick=false;
 binSize=0.25;
-delayLen=8;
 javaaddpath('R:\ZX\java\spk2fr\build\classes');
 javaaddpath('R:\ZX\java\spk2fr\lib\jmatio.jar');
 javaaddpath('R:\ZX\java\spk2fr\lib\commons-math3-3.5.jar');
@@ -14,8 +17,11 @@ s2f.setRefracRatio(0.1);
 s2f.setLeastFR('all');
 
 fl=listF();
-% fileList=fl.listDNMS4s();
-fileList=fl.listDNMS8s();
+if delayLen==4
+    fileList=fl.listDNMS4s();
+elseif delayLen==8
+    fileList=fl.listDNMS8s();
+end
 % [~,id]=allByTypeDNMS('sample','Average2Hz',-2,0.5,12,true,delayLen,true);
 % id=evalin('base','idselA');
 % fileList=id(:,1);
@@ -23,10 +29,6 @@ fileList=fl.listDNMS8s();
 
 rLim=delayLen+2;% 9 for 4s delay, 13 for 8s delay
 
-% 91_3 Dual-8s-R109-1-32EVT1234-R110-65-96-EVT18-21-0930_1GRP.mat
-% 07002
-% 03008
-% 00101
 
 for fi=fidx%1:size(fileList)
     
@@ -101,7 +103,8 @@ end
         xlim([-1,rLim]);
         ylim([0,41]);
         set(gca,'XTick',[],'YTick',[0,18,23,40],'YTickLabel',[0,20,0,20]);
-        plotSegs(rLim);
+        assignin('base','axT',gca());
+        plotSegs(delayLen);
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%
         subplot('Position',[0.1,0.1,0.85,0.35]);
@@ -112,7 +115,8 @@ end
             pfHist=histcounts(ts{1},-4:binSize:rLim)./binSize;
         else
             pfHist=cell2mat(cellfun(@(x) histcounts(x,-4:binSize:rLim)./binSize,ts{1},'UniformOutput',false));
-            fill([-4+binSize/2:binSize:rLim,rLim-binSize/2:-binSize:-4],[(mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1))),(fliplr(mean(pfHist)-std(pfHist)./sqrt(size(pfHist,1))))],[1,0.8,0.8],'EdgeColor','none');
+            cia=bootci(1000,@(x) mean(x), pfHist);
+            fill([-4+binSize/2:binSize:rLim,rLim-binSize/2:-binSize:-4],[cia(1,:),fliplr(cia(2,:))],[1,0.8,0.8],'EdgeColor','none');
         end
         if size(ts{2},1)==0
             bnHist=zeros(size(-4+binSize/2:binSize:rLim));
@@ -120,7 +124,8 @@ end
             bnHist=histcounts(ts{2},-4:binSize:rLim)./binSize;
         else
             bnHist=cell2mat(cellfun(@(x) histcounts(x,-4:binSize:rLim)./binSize,ts{2},'UniformOutput',false));
-            fill([-4+binSize/2:binSize:rLim,rLim-binSize/2:-binSize:-4],[(mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1))),(fliplr(mean(bnHist)-std(bnHist)./sqrt(size(bnHist,1))))],[0.8,0.8,1],'EdgeColor','none');
+            cib=bootci(1000,@(x) mean(x), bnHist);
+            fill([-4+binSize/2:binSize:rLim,rLim-binSize/2:-binSize:-4],[cib(1,:),fliplr(cib(2,:))],[0.8,0.8,1],'EdgeColor','none');
         end
         
         
@@ -128,8 +133,9 @@ end
         plot(-4+binSize/2:binSize:rLim,(mean(bnHist,1))','-b');
         
         xlim([-1,rLim]);
-        ylim([min(ylim()),max([mean(pfHist)+std(pfHist)./sqrt(size(pfHist,1)),mean(bnHist)+std(bnHist)./sqrt(size(bnHist,1))])]);
-        plotSegs(rLim);
+        ylim([min(ylim()),max([cia(:);cib(:)])]);
+        assignin('base','axB',gca());
+        plotSegs(delayLen);
         set(gca,'XTick',[0,5,10],'YTick',[0,18,23,40],'YTickLabel',[0,20,0,20]);
         
         
@@ -174,15 +180,8 @@ end
 
 
 
-    function plotSegs(rlim)
-        switch rlim
-            case 9
-                vertLine=[0,1,5,6,7,7.5];
-            case 13
-                vertLine=[0,1,9,10, 11, 11.5];
-            case 10
-                vertLine=[0,1,9,10, 11, 11.5];
-        end
+    function plotSegs(delayLen)
+        vertLine=[0,1,1,2,3,3.5]+[0,0,ones(1,4).*delayLen];
         plot(repmat(vertLine,2,1),repmat(ylim()',1,length(vertLine)),'--k');
     end
 

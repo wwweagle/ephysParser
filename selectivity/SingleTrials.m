@@ -17,6 +17,7 @@ classdef SingleTrials < handle
             persistUs=find(selSpan>=2);
             count=cellfun(@(x) size(x,1),spkCA);
             accued=(arrayfun(@(x) sum(count(1:x,1)),1:length(count)));
+%             persistUs=[45 118];
             for uidx=persistUs
                 fprintf('D%d, U%d\n',delayLen,uidx);
                 try
@@ -34,10 +35,11 @@ classdef SingleTrials < handle
                     
                     [bA,sbA]=SingleTrials.basestat(frA);
                     [bB,sbB]=SingleTrials.basestat(frB);
-                    delay2s=20+delayLen*10+(-9:10);
+%                     delayWin=20+delayLen*10+(-9:10);
+                    delayWin=20+delayLen*10+(-29:10);
                     
-                    mAZ=(mean(frA(:,delay2s),2)-bA)./sbA;
-                    mBZ=(mean(frB(:,delay2s),2)-bB)./sbB;
+                    mAZ=(mean(frA(:,delayWin),2)-bA)./sbA;
+                    mBZ=(mean(frB(:,delayWin),2)-bB)./sbB;
                     
                     
                     
@@ -85,8 +87,8 @@ classdef SingleTrials < handle
                 try
                     subplot(1,4,3);
                     hold on;
-                    mAEZ=(mean(frAE(:,delay2s),2)-bA)./sbA;
-                    mBEZ=(mean(frBE(:,delay2s),2)-bB)./sbB;
+                    mAEZ=(mean(frAE(:,delayWin),2)-bA)./sbA;
+                    mBEZ=(mean(frBE(:,delayWin),2)-bB)./sbB;
                     
                     cAEZ=histcounts(mAEZ,bins,'Normalization','probability');
                     cBEZ=histcounts(mBEZ,bins,'Normalization','probability');
@@ -111,15 +113,15 @@ classdef SingleTrials < handle
                         pos='S2';
                     end
                     
-                    [ax,ay,~,auc]=perfcurve(labels,scores,pos,'NBoot',1000);
+                    [ax,ay,~,auc]=perfcurve(labels,scores,pos);
                     labelse=[repmat({'S1'},size(mAEZ));repmat({'S2'},size(mBEZ))];
                     scorese=[mAEZ;mBEZ];
                     
-                    [aex,aey,~,auce]=perfcurve(labelse,scorese,pos,'NBoot',1000);
+                    [aex,aey,~,auce]=perfcurve(labelse,scorese,pos);
                     subplot(1,4,4);
                     hold on;
-                    fill([(ax(:,1));flipud(ax(:,1))],[(ay(:,2));flipud(ay(:,3))],[0.8,0.8,1],'EdgeColor','none','FaceAlpha',0.5);
-                    fill([(aex(:,1));flipud(aex(:,1))],[(aey(:,2));flipud(aey(:,3))],[1,0.8,0.8],'EdgeColor','none','FaceAlpha',0.5);
+%                     fill([(ax(:,1));flipud(ax(:,1))],[(ay(:,2));flipud(ay(:,3))],[0.8,0.8,1],'EdgeColor','none','FaceAlpha',0.5);
+%                     fill([(aex(:,1));flipud(aex(:,1))],[(aey(:,2));flipud(aey(:,3))],[1,0.8,0.8],'EdgeColor','none','FaceAlpha',0.5);
                     plot(ax(:,1),ay(:,1),'-b','LineWidth',1.5);text(0.33,0.66,num2str(auc(1)));
                     plot(aex(:,1),aey(:,1),'-r','LineWidth',1.5);text(0.66,0.33,num2str(auce(1)));
                     xlabel('False rate');
