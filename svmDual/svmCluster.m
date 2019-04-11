@@ -197,7 +197,6 @@ for rpt=1:decRpt
     
     
     svmModel=svmtrain(labelVec,instMat,sprintf('-q -t 2 -c %.4f -g %0.4f',c,g));
-
     [prLbl,accuracyVec,~]=svmpredict(testLabelVec,testMat,svmModel);
 %     fprintf('%d_1_%d, %d_2_%d, ',ts,prLbl(1),ts,prLbl(2));
     accuracy(rpt,1)=accuracyVec(1);
